@@ -17,6 +17,9 @@
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
+
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
   </target>
 
   <target name="compile" depends="init"
@@ -28,9 +31,6 @@
 
   <target name="dist" depends="compile"
           description="generate the distribution" >
-    <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
-
     <!-- Put everything in ${build} into the A1-${DSTAMP}.jar file -->
     <jar jarfile="${dist}/lib/A1-${DSTAMP}.jar" basedir="${build}"/>
   </target>

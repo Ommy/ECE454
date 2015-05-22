@@ -1,4 +1,4 @@
-package ece454750s15a1;
+package servers;
 
 public class BEServer {
 }

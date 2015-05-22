@@ -27,6 +27,19 @@
     <javac srcdir="${src}" destdir="${build}" classpathref="classpath"/>
   </target>
 
+    <target name="thriftgen" description="generate thrift files" >
+        <exec executable="thrift">
+            <arg value="--gen" />
+            <arg value="java" />
+            <arg value="password.thrift" />
+        </exec>
+        <exec executable="thrift">
+            <arg value="--gen" />
+            <arg value="java" />
+            <arg value="management.thrift" />
+        </exec>
+    </target>
+
   <target name="dist" depends="compile" description="generate the distribution" >
     <!-- Put everything in ${build} into the A1-${DSTAMP}.jar file -->
     <jar jarfile="${dist}/lib/A1-${DSTAMP}.jar" basedir="${build}"/>

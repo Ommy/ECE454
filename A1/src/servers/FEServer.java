@@ -58,11 +58,12 @@ public class FEServer {
     }
 
     public static void simple(A1Password.Processor processor) {
-        try {
-            TServerTransport serverTransport = new TServerSocket(9090);
-            TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));
 
-            System.out.println("Starting simple server...");
+        try {
+            System.out.println("Starting Simple Server");
+
+            TServerTransport serverTransport = new TServerSocket(16719);
+            TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));
             server.serve();
         } catch (Exception e) {
             e.printStackTrace();

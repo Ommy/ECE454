@@ -39,10 +39,10 @@ public class FEServer {
             String[] splitSeed = seed.split(":");
             seeds.put(splitSeed[0], Integer.parseInt(splitSeed[1]));
         }
+
         try {
             PasswordHandler handler = new PasswordHandler();
             processor = new A1Password.Processor(handler);
-
             Runnable simple = new Runnable() {
                 public void run() {
                     simple(processor);

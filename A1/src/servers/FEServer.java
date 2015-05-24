@@ -1,7 +1,7 @@
 package servers;
 
 import ece454750s15a1.A1Password;
-import handlers.PasswordHandler;
+import handlers.FPasswordHandler;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
@@ -41,7 +41,7 @@ public class FEServer {
         }
 
         try {
-            PasswordHandler handler = new PasswordHandler();
+            FPasswordHandler handler = new FPasswordHandler();
             processor = new A1Password.Processor(handler);
             Runnable simple = new Runnable() {
                 public void run() {
@@ -60,7 +60,7 @@ public class FEServer {
     public static void simple(A1Password.Processor processor) {
 
         try {
-            System.out.println("Starting Simple Server");
+            System.out.println("Starting Backend Server");
 
             TServerTransport serverTransport = new TServerSocket(16719);
             TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));

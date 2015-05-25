@@ -17,10 +17,17 @@ public class FEServer extends servers.Server {
     public static void main(String[] args) {
         initialize(args);
 
-        try{
-            register();
-        } catch (Exception e) {
-            e.printStackTrace();
+        // try to register this seed node with the others
+        boolean status = false;
+        int attempts = 0;
+        while (!status && attempts < 10) {
+            try{
+                status = register();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            attempts++;
         }
 
         try {

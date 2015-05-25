@@ -52,7 +52,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
   public int mport; // required
   public int ncores; // required
   /**
-   * 
+   *
    * @see ServerStatus
    */
   public ServerStatus status; // required
@@ -64,7 +64,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
     MPORT((short)3, "mport"),
     NCORES((short)4, "ncores"),
     /**
-     * 
+     *
      * @see ServerStatus
      */
     STATUS((short)5, "status");
@@ -139,15 +139,15 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.HOST, new org.apache.thrift.meta_data.FieldMetaData("host", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.HOST, new org.apache.thrift.meta_data.FieldMetaData("host", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.PPORT, new org.apache.thrift.meta_data.FieldMetaData("pport", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PPORT, new org.apache.thrift.meta_data.FieldMetaData("pport", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.MPORT, new org.apache.thrift.meta_data.FieldMetaData("mport", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.MPORT, new org.apache.thrift.meta_data.FieldMetaData("mport", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.NCORES, new org.apache.thrift.meta_data.FieldMetaData("ncores", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NCORES, new org.apache.thrift.meta_data.FieldMetaData("ncores", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, ServerStatus.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ServerDescription.class, metaDataMap);
@@ -300,7 +300,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
   }
 
   /**
-   * 
+   *
    * @see ServerStatus
    */
   public ServerStatus getStatus() {
@@ -308,7 +308,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
   }
 
   /**
-   * 
+   *
    * @see ServerStatus
    */
   public ServerDescription setStatus(ServerStatus status) {
@@ -630,7 +630,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -638,7 +638,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.host = iprot.readString();
               struct.setHostIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -646,7 +646,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.pport = iprot.readI32();
               struct.setPportIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -654,7 +654,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.mport = iprot.readI32();
               struct.setMportIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -662,7 +662,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.ncores = iprot.readI32();
               struct.setNcoresIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -670,7 +670,7 @@ public class ServerDescription implements org.apache.thrift.TBase<ServerDescript
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.status = ServerStatus.findByValue(iprot.readI32());
               struct.setStatusIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;

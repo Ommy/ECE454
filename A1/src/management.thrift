@@ -26,6 +26,6 @@ service A1Management {
     PerfCounters getPerfCounters()
 
     # custom services
-    bool register(1:ServerDescription)
-    bool announce(1:ServerDescription)
+    bool registerNode(1:ServerDescription description)
+    bool announceNode(1:ServerDescription description)
 }

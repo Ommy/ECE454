@@ -16,6 +16,12 @@ public class BEServer extends Server {
     public static void main(String[] args) {
         initialize(args);
 
+        try{
+            register();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         try {
             BPasswordHandler handler = new BPasswordHandler();
             processor = new A1Password.Processor(handler);
@@ -34,7 +40,7 @@ public class BEServer extends Server {
 
     public static void simple(A1Password.Processor processor) {
         try {
-            System.out.println("Starting Simple Server");
+            System.out.println("Starting Backend Server");
 
             TServerTransport serverTransport = new TServerSocket(16720);
             TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));

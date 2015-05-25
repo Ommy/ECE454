@@ -13,7 +13,7 @@ public class JavaClient {
 
     public static void main(String[] args) {
         try {
-            TTransport transport = new TSocket("localhost", 16719);
+            TTransport transport = new TSocket("localhost", 16721);
             transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);

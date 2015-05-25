@@ -10,16 +10,24 @@ import org.apache.thrift.transport.TServerTransport;
 
 import java.util.*;
 
-public class BEServer extends Server {
+public class BEServer extends servers.Server {
     public static A1Password.Processor processor;
 
     public static void main(String[] args) {
         initialize(args);
 
-        try{
-            register();
-        } catch (Exception e) {
-            e.printStackTrace();
+        // try to register this seed node with the others
+        System.out.println("Registering...");
+        boolean status = false;
+        int attempts = 0;
+        while (!status && attempts < 10) {
+            try {
+                status = register();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            attempts++;
         }
 
         try {
@@ -42,7 +50,7 @@ public class BEServer extends Server {
         try {
             System.out.println("Starting Backend Server");
 
-            TServerTransport serverTransport = new TServerSocket(16720);
+            TServerTransport serverTransport = new TServerSocket(16721);
             TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
             server.serve();
         } catch (Exception e) {

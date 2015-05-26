@@ -12,11 +12,13 @@ import org.mindrot.jbcrypt.BCrypt;
 public class FPasswordHandler implements A1Password.Iface {
 
     @Override
-    public String hashPassword(String password, short logRounds) throws ServiceUnavailableException, TException {
+    public String hashPassword(String password, short logRounds) throws TException {
         TTransport transport = new TSocket("localhost", 16720);
         transport.open();
         TProtocol protocol = new TBinaryProtocol(transport);
         A1Password.Client client = new A1Password.Client(protocol);
+        // TODO Victor: Get updated list of backend nodes, and do load
+        // balancing here;
         String hashedPassword = client.hashPassword(password, logRounds);
         return hashedPassword;
     }

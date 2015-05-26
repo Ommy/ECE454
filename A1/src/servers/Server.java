@@ -54,7 +54,7 @@ public abstract class Server {
 
     }
 
-    public static boolean register() throws TException, InterruptedException {
+    public static boolean register() throws TException {
         AtomicBoolean status = new AtomicBoolean(false);
         AtomicBoolean completed = new AtomicBoolean(false);
 
@@ -98,8 +98,8 @@ public abstract class Server {
                 completed.set(true);
                 transport.close();
 
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch(TException te) {
+                te.printStackTrace();
             }
         }
     }

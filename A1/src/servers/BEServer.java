@@ -2,13 +2,10 @@ package servers;
 
 import ece454750s15a1.A1Password;
 import handlers.BPasswordHandler;
-import handlers.FPasswordHandler;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
-
-import java.util.*;
 
 public class BEServer extends servers.Server {
     public static A1Password.Processor processor;

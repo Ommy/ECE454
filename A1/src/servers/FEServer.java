@@ -9,8 +9,6 @@ import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
-
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -71,6 +69,7 @@ public class FEServer extends servers.Server {
         }
     }
 
+
     public static void passwordProcess(A1Password.Processor processor) {
         try {
             System.out.println("Starting Password Server");
@@ -83,3 +82,4 @@ public class FEServer extends servers.Server {
         }
     }
 }
+

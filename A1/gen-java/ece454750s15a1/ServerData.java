@@ -35,7 +35,8 @@ import org.slf4j.LoggerFactory;
 public class ServerData implements org.apache.thrift.TBase<ServerData, ServerData._Fields>, java.io.Serializable, Cloneable, Comparable<ServerData> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ServerData");
 
-  private static final org.apache.thrift.protocol.TField KNOWN_SERVERS_FIELD_DESC = new org.apache.thrift.protocol.TField("knownServers", org.apache.thrift.protocol.TType.LIST, (short)1);
+  private static final org.apache.thrift.protocol.TField ONLINE_SERVERS_FIELD_DESC = new org.apache.thrift.protocol.TField("onlineServers", org.apache.thrift.protocol.TType.LIST, (short)1);
+  private static final org.apache.thrift.protocol.TField OFFLINE_SERVERS_FIELD_DESC = new org.apache.thrift.protocol.TField("offlineServers", org.apache.thrift.protocol.TType.LIST, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -43,11 +44,13 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
     schemes.put(TupleScheme.class, new ServerDataTupleSchemeFactory());
   }
 
-  public List<ServerDescription> knownServers; // required
+  public List<ServerDescription> onlineServers; // required
+  public List<ServerDescription> offlineServers; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    KNOWN_SERVERS((short)1, "knownServers");
+    ONLINE_SERVERS((short)1, "onlineServers"),
+    OFFLINE_SERVERS((short)2, "offlineServers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -62,8 +65,10 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // KNOWN_SERVERS
-          return KNOWN_SERVERS;
+        case 1: // ONLINE_SERVERS
+          return ONLINE_SERVERS;
+        case 2: // OFFLINE_SERVERS
+          return OFFLINE_SERVERS;
         default:
           return null;
       }
@@ -107,7 +112,10 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.KNOWN_SERVERS, new org.apache.thrift.meta_data.FieldMetaData("knownServers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.ONLINE_SERVERS, new org.apache.thrift.meta_data.FieldMetaData("onlineServers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ServerDescription.class))));
+    tmpMap.put(_Fields.OFFLINE_SERVERS, new org.apache.thrift.meta_data.FieldMetaData("offlineServers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ServerDescription.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -118,22 +126,31 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
   }
 
   public ServerData(
-    List<ServerDescription> knownServers)
+    List<ServerDescription> onlineServers,
+    List<ServerDescription> offlineServers)
   {
     this();
-    this.knownServers = knownServers;
+    this.onlineServers = onlineServers;
+    this.offlineServers = offlineServers;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public ServerData(ServerData other) {
-    if (other.isSetKnownServers()) {
-      List<ServerDescription> __this__knownServers = new ArrayList<ServerDescription>(other.knownServers.size());
-      for (ServerDescription other_element : other.knownServers) {
-        __this__knownServers.add(new ServerDescription(other_element));
+    if (other.isSetOnlineServers()) {
+      List<ServerDescription> __this__onlineServers = new ArrayList<ServerDescription>(other.onlineServers.size());
+      for (ServerDescription other_element : other.onlineServers) {
+        __this__onlineServers.add(new ServerDescription(other_element));
       }
-      this.knownServers = __this__knownServers;
+      this.onlineServers = __this__onlineServers;
+    }
+    if (other.isSetOfflineServers()) {
+      List<ServerDescription> __this__offlineServers = new ArrayList<ServerDescription>(other.offlineServers.size());
+      for (ServerDescription other_element : other.offlineServers) {
+        __this__offlineServers.add(new ServerDescription(other_element));
+      }
+      this.offlineServers = __this__offlineServers;
     }
   }
 
@@ -143,55 +160,103 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
 
   @Override
   public void clear() {
-    this.knownServers = null;
+    this.onlineServers = null;
+    this.offlineServers = null;
   }
 
-  public int getKnownServersSize() {
-    return (this.knownServers == null) ? 0 : this.knownServers.size();
+  public int getOnlineServersSize() {
+    return (this.onlineServers == null) ? 0 : this.onlineServers.size();
   }
 
-  public java.util.Iterator<ServerDescription> getKnownServersIterator() {
-    return (this.knownServers == null) ? null : this.knownServers.iterator();
+  public java.util.Iterator<ServerDescription> getOnlineServersIterator() {
+    return (this.onlineServers == null) ? null : this.onlineServers.iterator();
   }
 
-  public void addToKnownServers(ServerDescription elem) {
-    if (this.knownServers == null) {
-      this.knownServers = new ArrayList<ServerDescription>();
+  public void addToOnlineServers(ServerDescription elem) {
+    if (this.onlineServers == null) {
+      this.onlineServers = new ArrayList<ServerDescription>();
     }
-    this.knownServers.add(elem);
+    this.onlineServers.add(elem);
   }
 
-  public List<ServerDescription> getKnownServers() {
-    return this.knownServers;
+  public List<ServerDescription> getOnlineServers() {
+    return this.onlineServers;
   }
 
-  public ServerData setKnownServers(List<ServerDescription> knownServers) {
-    this.knownServers = knownServers;
+  public ServerData setOnlineServers(List<ServerDescription> onlineServers) {
+    this.onlineServers = onlineServers;
     return this;
   }
 
-  public void unsetKnownServers() {
-    this.knownServers = null;
+  public void unsetOnlineServers() {
+    this.onlineServers = null;
   }
 
-  /** Returns true if field knownServers is set (has been assigned a value) and false otherwise */
-  public boolean isSetKnownServers() {
-    return this.knownServers != null;
+  /** Returns true if field onlineServers is set (has been assigned a value) and false otherwise */
+  public boolean isSetOnlineServers() {
+    return this.onlineServers != null;
   }
 
-  public void setKnownServersIsSet(boolean value) {
+  public void setOnlineServersIsSet(boolean value) {
     if (!value) {
-      this.knownServers = null;
+      this.onlineServers = null;
+    }
+  }
+
+  public int getOfflineServersSize() {
+    return (this.offlineServers == null) ? 0 : this.offlineServers.size();
+  }
+
+  public java.util.Iterator<ServerDescription> getOfflineServersIterator() {
+    return (this.offlineServers == null) ? null : this.offlineServers.iterator();
+  }
+
+  public void addToOfflineServers(ServerDescription elem) {
+    if (this.offlineServers == null) {
+      this.offlineServers = new ArrayList<ServerDescription>();
+    }
+    this.offlineServers.add(elem);
+  }
+
+  public List<ServerDescription> getOfflineServers() {
+    return this.offlineServers;
+  }
+
+  public ServerData setOfflineServers(List<ServerDescription> offlineServers) {
+    this.offlineServers = offlineServers;
+    return this;
+  }
+
+  public void unsetOfflineServers() {
+    this.offlineServers = null;
+  }
+
+  /** Returns true if field offlineServers is set (has been assigned a value) and false otherwise */
+  public boolean isSetOfflineServers() {
+    return this.offlineServers != null;
+  }
+
+  public void setOfflineServersIsSet(boolean value) {
+    if (!value) {
+      this.offlineServers = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case KNOWN_SERVERS:
+    case ONLINE_SERVERS:
       if (value == null) {
-        unsetKnownServers();
+        unsetOnlineServers();
       } else {
-        setKnownServers((List<ServerDescription>)value);
+        setOnlineServers((List<ServerDescription>)value);
+      }
+      break;
+
+    case OFFLINE_SERVERS:
+      if (value == null) {
+        unsetOfflineServers();
+      } else {
+        setOfflineServers((List<ServerDescription>)value);
       }
       break;
 
@@ -200,8 +265,11 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case KNOWN_SERVERS:
-      return getKnownServers();
+    case ONLINE_SERVERS:
+      return getOnlineServers();
+
+    case OFFLINE_SERVERS:
+      return getOfflineServers();
 
     }
     throw new IllegalStateException();
@@ -214,8 +282,10 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
     }
 
     switch (field) {
-    case KNOWN_SERVERS:
-      return isSetKnownServers();
+    case ONLINE_SERVERS:
+      return isSetOnlineServers();
+    case OFFLINE_SERVERS:
+      return isSetOfflineServers();
     }
     throw new IllegalStateException();
   }
@@ -233,12 +303,21 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
     if (that == null)
       return false;
 
-    boolean this_present_knownServers = true && this.isSetKnownServers();
-    boolean that_present_knownServers = true && that.isSetKnownServers();
-    if (this_present_knownServers || that_present_knownServers) {
-      if (!(this_present_knownServers && that_present_knownServers))
+    boolean this_present_onlineServers = true && this.isSetOnlineServers();
+    boolean that_present_onlineServers = true && that.isSetOnlineServers();
+    if (this_present_onlineServers || that_present_onlineServers) {
+      if (!(this_present_onlineServers && that_present_onlineServers))
         return false;
-      if (!this.knownServers.equals(that.knownServers))
+      if (!this.onlineServers.equals(that.onlineServers))
+        return false;
+    }
+
+    boolean this_present_offlineServers = true && this.isSetOfflineServers();
+    boolean that_present_offlineServers = true && that.isSetOfflineServers();
+    if (this_present_offlineServers || that_present_offlineServers) {
+      if (!(this_present_offlineServers && that_present_offlineServers))
+        return false;
+      if (!this.offlineServers.equals(that.offlineServers))
         return false;
     }
 
@@ -258,12 +337,22 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetKnownServers()).compareTo(other.isSetKnownServers());
+    lastComparison = Boolean.valueOf(isSetOnlineServers()).compareTo(other.isSetOnlineServers());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetKnownServers()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.knownServers, other.knownServers);
+    if (isSetOnlineServers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.onlineServers, other.onlineServers);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetOfflineServers()).compareTo(other.isSetOfflineServers());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetOfflineServers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.offlineServers, other.offlineServers);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -288,11 +377,19 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
     StringBuilder sb = new StringBuilder("ServerData(");
     boolean first = true;
 
-    sb.append("knownServers:");
-    if (this.knownServers == null) {
+    sb.append("onlineServers:");
+    if (this.onlineServers == null) {
       sb.append("null");
     } else {
-      sb.append(this.knownServers);
+      sb.append(this.onlineServers);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("offlineServers:");
+    if (this.offlineServers == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.offlineServers);
     }
     first = false;
     sb.append(")");
@@ -338,21 +435,40 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
           break;
         }
         switch (schemeField.id) {
-          case 1: // KNOWN_SERVERS
+          case 1: // ONLINE_SERVERS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.knownServers = new ArrayList<ServerDescription>(_list0.size);
+                struct.onlineServers = new ArrayList<ServerDescription>(_list0.size);
                 for (int _i1 = 0; _i1 < _list0.size; ++_i1)
                 {
                   ServerDescription _elem2;
                   _elem2 = new ServerDescription();
                   _elem2.read(iprot);
-                  struct.knownServers.add(_elem2);
+                  struct.onlineServers.add(_elem2);
                 }
                 iprot.readListEnd();
               }
-              struct.setKnownServersIsSet(true);
+              struct.setOnlineServersIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // OFFLINE_SERVERS
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list3 = iprot.readListBegin();
+                struct.offlineServers = new ArrayList<ServerDescription>(_list3.size);
+                for (int _i4 = 0; _i4 < _list3.size; ++_i4)
+                {
+                  ServerDescription _elem5;
+                  _elem5 = new ServerDescription();
+                  _elem5.read(iprot);
+                  struct.offlineServers.add(_elem5);
+                }
+                iprot.readListEnd();
+              }
+              struct.setOfflineServersIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -372,13 +488,25 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.knownServers != null) {
-        oprot.writeFieldBegin(KNOWN_SERVERS_FIELD_DESC);
+      if (struct.onlineServers != null) {
+        oprot.writeFieldBegin(ONLINE_SERVERS_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.knownServers.size()));
-          for (ServerDescription _iter3 : struct.knownServers)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.onlineServers.size()));
+          for (ServerDescription _iter6 : struct.onlineServers)
           {
-            _iter3.write(oprot);
+            _iter6.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.offlineServers != null) {
+        oprot.writeFieldBegin(OFFLINE_SERVERS_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.offlineServers.size()));
+          for (ServerDescription _iter7 : struct.offlineServers)
+          {
+            _iter7.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -402,16 +530,28 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
     public void write(org.apache.thrift.protocol.TProtocol prot, ServerData struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetKnownServers()) {
+      if (struct.isSetOnlineServers()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
-      if (struct.isSetKnownServers()) {
+      if (struct.isSetOfflineServers()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetOnlineServers()) {
         {
-          oprot.writeI32(struct.knownServers.size());
-          for (ServerDescription _iter4 : struct.knownServers)
+          oprot.writeI32(struct.onlineServers.size());
+          for (ServerDescription _iter8 : struct.onlineServers)
           {
-            _iter4.write(oprot);
+            _iter8.write(oprot);
+          }
+        }
+      }
+      if (struct.isSetOfflineServers()) {
+        {
+          oprot.writeI32(struct.offlineServers.size());
+          for (ServerDescription _iter9 : struct.offlineServers)
+          {
+            _iter9.write(oprot);
           }
         }
       }
@@ -420,20 +560,34 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ServerData struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.knownServers = new ArrayList<ServerDescription>(_list5.size);
-          for (int _i6 = 0; _i6 < _list5.size; ++_i6)
+          org.apache.thrift.protocol.TList _list10 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.onlineServers = new ArrayList<ServerDescription>(_list10.size);
+          for (int _i11 = 0; _i11 < _list10.size; ++_i11)
           {
-            ServerDescription _elem7;
-            _elem7 = new ServerDescription();
-            _elem7.read(iprot);
-            struct.knownServers.add(_elem7);
+            ServerDescription _elem12;
+            _elem12 = new ServerDescription();
+            _elem12.read(iprot);
+            struct.onlineServers.add(_elem12);
           }
         }
-        struct.setKnownServersIsSet(true);
+        struct.setOnlineServersIsSet(true);
+      }
+      if (incoming.get(1)) {
+        {
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.offlineServers = new ArrayList<ServerDescription>(_list13.size);
+          for (int _i14 = 0; _i14 < _list13.size; ++_i14)
+          {
+            ServerDescription _elem15;
+            _elem15 = new ServerDescription();
+            _elem15.read(iprot);
+            struct.offlineServers.add(_elem15);
+          }
+        }
+        struct.setOfflineServersIsSet(true);
       }
     }
   }

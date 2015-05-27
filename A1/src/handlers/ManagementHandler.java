@@ -4,14 +4,15 @@ import ece454750s15a1.A1Management;
 import ece454750s15a1.PerfCounters;
 import ece454750s15a1.ServerData;
 import org.apache.thrift.TException;
+
+import java.util.Arrays;
 import java.util.List;
 
 public class ManagementHandler implements A1Management.Iface {
 
     @Override
     public List<String> getGroupMembers() throws TException {
-        System.out.println("A");
-        return null;
+        return Arrays.asList("v6lai", "faawan");
     }
 
     @Override
@@ -24,4 +25,5 @@ public class ManagementHandler implements A1Management.Iface {
     public ServerData exchangeServerData(ServerData data) throws TException {
         return null;
     }
+    
 }

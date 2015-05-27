@@ -16,8 +16,8 @@ import java.util.concurrent.Executors;
 
 public abstract class Server {
 
-    protected List<ServerDescription> peers;
-    protected final ServerDescription description;
+    protected final ServerData myData;
+    protected final ServerDescription myDescription;
 
     protected final List<String> seedHosts;
     protected final List<Integer> seedPorts;
@@ -58,7 +58,8 @@ public abstract class Server {
             }
         }
 
-        description = new ServerDescription(host, pport, mport, ncores, ServerStatus.UNREGISTERED, type);
+        myDescription = new ServerDescription(host, pport, mport, ncores, type);
+        myData = new ServerData(Arrays.asList(myDescription), new ArrayList<ServerDescription>());
     }
 
     public void onStartupRegister() {
@@ -77,22 +78,22 @@ public abstract class Server {
 
                         @Override
                         public Void call() {
-                            try {
-                                TTransport transport = new TSocket(seedHost, seedPort);
-                                TProtocol protocol = new TBinaryProtocol(transport);
+                        try {
+                            TTransport transport = new TSocket(seedHost, seedPort);
+                            TProtocol protocol = new TBinaryProtocol(transport);
 
-                                transport.open();
-                                A1Management.Client client = new A1Management.Client(protocol);
+                            transport.open();
+                            A1Management.Client client = new A1Management.Client(protocol);
 
-                                // retrieve nodes from seed list
+                            client.exchangeServerData();
 
-                                transport.close();
+                            transport.close();
 
-                            } catch(TException te) {
-                                te.printStackTrace();
-                            }
+                        } catch(TException te) {
+                            te.printStackTrace();
+                        }
 
-                            return null;
+                        return null;
                         }
                     });
                 }

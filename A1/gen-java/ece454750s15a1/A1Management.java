@@ -1054,13 +1054,13 @@ public class A1Management {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
-                  struct.success = new ArrayList<String>(_list8.size);
-                  for (int _i9 = 0; _i9 < _list8.size; ++_i9)
+                  org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
+                  struct.success = new ArrayList<String>(_list16.size);
+                  for (int _i17 = 0; _i17 < _list16.size; ++_i17)
                   {
-                    String _elem10;
-                    _elem10 = iprot.readString();
-                    struct.success.add(_elem10);
+                    String _elem18;
+                    _elem18 = iprot.readString();
+                    struct.success.add(_elem18);
                   }
                   iprot.readListEnd();
                 }
@@ -1088,9 +1088,9 @@ public class A1Management {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
-            for (String _iter11 : struct.success)
+            for (String _iter19 : struct.success)
             {
-              oprot.writeString(_iter11);
+              oprot.writeString(_iter19);
             }
             oprot.writeListEnd();
           }
@@ -1121,9 +1121,9 @@ public class A1Management {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (String _iter12 : struct.success)
+            for (String _iter20 : struct.success)
             {
-              oprot.writeString(_iter12);
+              oprot.writeString(_iter20);
             }
           }
         }
@@ -1135,13 +1135,13 @@ public class A1Management {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new ArrayList<String>(_list13.size);
-            for (int _i14 = 0; _i14 < _list13.size; ++_i14)
+            org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.success = new ArrayList<String>(_list21.size);
+            for (int _i22 = 0; _i22 < _list21.size; ++_i22)
             {
-              String _elem15;
-              _elem15 = iprot.readString();
-              struct.success.add(_elem15);
+              String _elem23;
+              _elem23 = iprot.readString();
+              struct.success.add(_elem23);
             }
           }
           struct.setSuccessIsSet(true);

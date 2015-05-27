@@ -7,11 +7,12 @@ enum ServerStatus {
 }
 
 struct ServerDescription {
-    1:string host,
-    2:i32 pport,
-    3:i32 mport,
-    4:i32 ncores,
-    5:ServerStatus status
+    1:i32 id,
+    2:string host,
+    3:i32 pport,
+    4:i32 mport,
+    5:i32 ncores,
+    6:ServerStatus status
 }
 
 struct PerfCounters {

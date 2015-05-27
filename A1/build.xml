@@ -24,17 +24,12 @@
   </path>
 
   <target name="init">
-    <!-- Create the time stamp -->
     <tstamp/>
-    <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
-
-    <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
+    <mkdir dir="${dist}"/>
   </target>
 
   <target name="compile" depends="init" description="compile the source" >
-    <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" classpathref="libs.classpath" includeantruntime="false">
     </javac>
   </target>
@@ -69,7 +64,6 @@
   </target>
 
   <target name="clean" description="clean up" >
-    <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
   </target>

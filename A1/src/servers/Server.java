@@ -17,11 +17,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Server {
-    public static ServerDescription description;
-    public static List<String> seedHosts;
-    public static List<Integer> seedPorts;
+    public ServerDescription description;
+    public List<String> seedHosts;
+    public List<Integer> seedPorts;
 
-    public static void initialize(String[] args) {
+    public void initialize(String[] args) {
         String host = "localhost";
         seedHosts = new ArrayList<String>();
         seedPorts = new ArrayList<Integer>();
@@ -54,7 +54,7 @@ public abstract class Server {
 
     }
 
-    public static boolean register() throws TException {
+    public boolean register() throws TException {
         AtomicBoolean status = new AtomicBoolean(false);
         AtomicBoolean completed = new AtomicBoolean(false);
 
@@ -104,7 +104,7 @@ public abstract class Server {
         }
     }
 
-    protected static boolean isSeedNode() {
+    protected boolean isSeedNode() {
         boolean isSeed = false;
         for (int i = 0; i < seedHosts.size(); ++i) {
             if (seedHosts.get(i).equals(description.host) && seedPorts.get(i).equals(description.mport)) {

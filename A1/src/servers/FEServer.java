@@ -25,95 +25,26 @@ import java.util.concurrent.Executors;
 
 public class FEServer extends servers.Server {
 
-    private final List<ServerDescription> descriptions;
-    public A1Password.Processor pProcessor;
-    public A1Management.Processor mProcessor;
 
     public static void main(String[] args) {
-        FEServer server = new FEServer();
-        server.run(args);
+        FEServer server = new FEServer(args);
+        server.run();
     }
 
-    public FEServer() {
-        descriptions = new LinkedList<ServerDescription>();
+    public FEServer(String[] args) {
+        super(args);
     }
 
-    public void run(String[] args) {
-        initialize(args);
+    public void run() {
+        onStartupRegister();
 
-        // try to register this node with the others
-        boolean status = false;
-        int attempts = 0;
-        while (!status && attempts < 10) {
-            try{
-                status = register();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        final A1Password.Iface fHandler = new FEServerPasswordHandler();
+        final A1Management.Iface mHandler = new FEServerManagementHandler();
 
-            attempts++;
-        }
+        final A1Password.Processor fProcessor;
 
-        try {
-            ExecutorService executor = Executors.newFixedThreadPool(2);
-            FPasswordHandler fHandler = new FPasswordHandler();
-            ManagementHandler mHandler = new ManagementHandler();
-            mProcessor = new A1Management.Processor(mHandler);
-            pProcessor = new A1Password.Processor(fHandler);
-            Runnable managementRunnable = new Runnable() {
-                public void run() {
-                    managementProcess(mProcessor);
-                }
-            };
-            Runnable passwordRunnable = new Runnable() {
-                public void run() {
-                    passwordProcess(pProcessor);
-                }
-            };
-            executor.execute(managementRunnable);
-            executor.execute(passwordRunnable);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void managementProcess(A1Management.Processor processor) {
-        try {
-
-            TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getMport());
-            TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(transport);
-
-            args.transportFactory(new TFramedTransport.Factory());
-            args.protocolFactory(new TBinaryProtocol.Factory());
-            args.processor(processor);
-            args.selectorThreads(8*description.getNcores());
-            args.workerThreads(8*description.getNcores());
-            TServer server = new TThreadedSelectorServer(args);
-            server.serve();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void passwordProcess(A1Password.Processor processor) {
-        try {
-
-            TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getPport());
-            TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(transport);
-
-            args.transportFactory(new TFramedTransport.Factory());
-            args.protocolFactory(new TBinaryProtocol.Factory());
-            args.processor(processor);
-            args.selectorThreads(8*description.getNcores());
-            args.workerThreads(8*description.getNcores());
-            TServer server = new TThreadedSelectorServer(args);
-            server.serve();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        onStartupInitializeServices(fHandler, mHandler);
     }
 
     public class FEServerManagementHandler implements A1Management.Iface {
@@ -155,13 +86,7 @@ public class FEServer extends servers.Server {
     }
 
 
-    public class FPasswordHandler implements A1Password.Iface {
-
-        private final ServerDescription description;
-
-        public FPasswordHandler(ServerDescription description) {
-            this.description = description;
-        }
+    public class FEServerPasswordHandler implements A1Password.Iface {
 
         @Override
         public String hashPassword(String password, short logRounds) throws TException {

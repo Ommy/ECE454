@@ -6,13 +6,20 @@ enum ServerStatus {
     DOWN
 }
 
+enum ServerType {
+    SEED,
+    FE,
+    BE
+}
+
 struct ServerDescription {
     1:i32 id,
     2:string host,
     3:i32 pport,
     4:i32 mport,
     5:i32 ncores,
-    6:ServerStatus status
+    6:ServerStatus status,
+    7:ServerType type
 }
 
 struct PerfCounters {
@@ -27,6 +34,9 @@ service A1Management {
     PerfCounters getPerfCounters()
 
     # custom services
-    bool registerNode(1:ServerDescription description)
+    list<ServerDescription> onStartupRegisterNode(1:ServerDescription newNodeDescription)
+    list<ServerDescription> onStartupRequestNodes(1:ServerDescription newNodeDescription)
+
+
     bool announceNode(1:ServerDescription description)
 }

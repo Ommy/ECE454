@@ -1,55 +1,29 @@
 package servers;
 
-import ece454750s15a1.A1Password;
+import ece454750s15a1.*;
 import handlers.BPasswordHandler;
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TSimpleServer;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TServerTransport;
+import handlers.ManagementHandler;
 
 public class BEServer extends servers.Server {
-    public static A1Password.Processor processor;
 
     public static void main(String[] args) {
-        initialize(args);
+        BEServer server = new BEServer(args, ServerType.BE);
+        server.run();
+    }
 
-        // try to register this seed node with the others
-        System.out.println("Registering...");
-        boolean status = false;
-        int attempts = 0;
-        while (!status && attempts < 10) {
-            try {
-                status = register();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    public BEServer(String[] args, ServerType type) {
+        super(args, type);
+    }
 
-            attempts++;
-        }
+    public void run() {
+        onStartupRegister();
 
-        try {
-            Runnable simple = new Runnable() {
-                public void run() {
-                    A1Password.Iface handler = new BPasswordHandler();
-                    final TProcessor processor = new A1Password.Processor<A1Password.Iface>(handler);
+        final A1Password.Iface pHandler = new BPasswordHandler();
+        final A1Management.Iface mHandler = new ManagementHandler();
 
-                    try {
-                        System.out.println("Starting Backend Server");
+        final A1Password.Processor pProcessor = new A1Password.Processor<A1Password.Iface>(pHandler);
+        final A1Management.Processor mProcessor = new A1Management.Processor<A1Management.Iface>(mHandler);
 
-                        TServerTransport serverTransport = new TServerSocket(16721);
-                        TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
-                        server.serve();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-
-            new Thread(simple).start();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        onStartupInitializeServices(pProcessor, mProcessor);
     }
 }

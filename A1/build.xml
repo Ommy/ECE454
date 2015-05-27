@@ -4,6 +4,7 @@
   </description>
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
+  <property name="src-gen-java" location="gen-java"/>
   <property name="build" location="build"/>
   <property name="dist" location="dist/lib"/>
   <property name="lib" value="lib" />
@@ -30,21 +31,21 @@
   </target>
 
   <target name="compile" depends="init" description="compile the source" >
-    <javac srcdir="${src}" destdir="${build}" classpathref="libs.classpath" includeantruntime="false">
+    <javac srcdir="${src}:${src-gen-java}" destdir="${build}" classpathref="libs.classpath" includeantruntime="false">
     </javac>
   </target>
 
     <target name="generate" description="generate thrift files" >
-      <exec executable="thrift">
+      <exec executable="C:/bin/thrift-0.9.1">
         <arg value="--gen" />
         <arg value="java" />
-        <arg value="password.thrift" />
+        <arg value="${src}/password.thrift" />
       </exec>
-      <exec executable="thrift">
+      <exec executable="C:/bin/thrift-0.9.1">
         <arg value="--gen" />
         <arg value="java" />
-        <arg value="management.thrift" />
-    </exec>
+        <arg value="${src}/management.thrift" />
+      </exec>
     </target>
 
   <target name="dist" depends="compile" description="generate the distribution" >

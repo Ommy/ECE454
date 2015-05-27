@@ -1,19 +1,12 @@
 package handlers;
 
-import ece454750s15a1.*;
-
+import ece454750s15a1.A1Management;
+import ece454750s15a1.PerfCounters;
+import ece454750s15a1.ServerData;
 import org.apache.thrift.TException;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class ManagementHandler implements A1Management.Iface {
-
-    List<ServerDescription> servers;
-
-    public ManagementHandler() {
-        servers = new ArrayList<ServerDescription>();
-    }
 
     @Override
     public List<String> getGroupMembers() throws TException {
@@ -28,19 +21,7 @@ public class ManagementHandler implements A1Management.Iface {
     }
 
     @Override
-    public boolean registerNode(ServerDescription description) throws TException {
-        if (servers.contains(description)){
-            return false;
-        } else {
-            servers.add(description);
-            System.out.println("Successfully registered. Server size is: " + servers.size());
-            return true;
-        }
-    }
-
-    @Override
-    public boolean announceNode(ServerDescription description) throws TException {
-        System.out.println("C");
-        return false;
+    public ServerData exchangeServerData(ServerData data) throws TException {
+        return null;
     }
 }

@@ -1,11 +1,10 @@
 package clients;
-import ece454750s15a1.*;
 
+import ece454750s15a1.A1Password;
 import org.apache.thrift.TException;
-import org.apache.thrift.transport.TSSLTransportFactory;
+
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 

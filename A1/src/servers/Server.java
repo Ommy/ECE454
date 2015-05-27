@@ -1,9 +1,6 @@
 package servers;
 
-import ece454750s15a1.A1Management;
-import ece454750s15a1.A1Password;
-import ece454750s15a1.ServerDescription;
-import ece454750s15a1.ServerStatus;
+import ece454750s15a1.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -11,13 +8,11 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.*;
 
-import java.lang.Runnable;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Server {
 
@@ -27,7 +22,7 @@ public abstract class Server {
     protected final List<String> seedHosts;
     protected final List<Integer> seedPorts;
 
-    protected Server(String[] args) {
+    protected Server(String[] args, ServerType type) {
         seedHosts = new ArrayList<String>();
         seedPorts = new ArrayList<Integer>();
 
@@ -47,11 +42,9 @@ public abstract class Server {
             } else if (args[i].equals("-ncores") && i+1 < args.length) {
                 ncores = Integer.parseInt(args[i+1]);
             } else if (args[i].equals("-seeds") && i+1 < args.length) {
-                seedsList = Arrays.asList(args[i + 1].split(","));
+                seedsList = Arrays.asList(args[i+1].split(","));
             }
         }
-
-        description = new ServerDescription(host, pport, mport, ncores, ServerStatus.UNREGISTERED);
 
         for(String seed: seedsList) {
             String[] splitSeed = seed.split(":");
@@ -59,7 +52,13 @@ public abstract class Server {
             seedPorts.add(Integer.parseInt(splitSeed[1]));
         }
 
-        peers = new LinkedList<ServerDescription>();
+        if (type == ServerType.FE) {
+            if (isSeedNode()) {
+                type = ServerType.SEED;
+            }
+        }
+
+        description = new ServerDescription(host, pport, mport, ncores, ServerStatus.UNREGISTERED, type);
     }
 
     public void onStartupRegister() {
@@ -67,7 +66,7 @@ public abstract class Server {
             if (!isSeedNode()) {
 
                 final ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
-                final List<Callable> workers = new ArrayList<Callable>();
+                final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
 
                 for (int i = 0; i < seedHosts.size(); ++i) {
                     final String seedHost = seedHosts.get(i);
@@ -115,7 +114,7 @@ public abstract class Server {
 
         try {
             ExecutorService executor = Executors.newFixedThreadPool(2);
-            final Callable managementRunnable = new Callable<Void>() {
+            final Callable<Void> managementRunnable = new Callable<Void>() {
 
                 @Override
                 public Void call() {
@@ -140,7 +139,7 @@ public abstract class Server {
                 }
             };
 
-            final Callable passwordRunnable = new Callable<Void>() {
+            final Callable<Void> passwordRunnable = new Callable<Void>() {
 
                 @Override
                 public Void call() {
@@ -165,7 +164,7 @@ public abstract class Server {
                 }
             };
 
-            executor.invokeAll(new ArrayList<Callable<Void>>(){ managementRunnable, passwordRunnable});
+            executor.invokeAll(Arrays.asList(managementRunnable, passwordRunnable));
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -128,14 +128,14 @@ public abstract class BaseServer implements IServer {
                 public Void call() {
                     try {
 
-                        TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getMport());
+                        TNonblockingServerTransport transport = new TNonblockingServerSocket(myDescription.getMport());
                         TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(transport);
 
                         args.transportFactory(new TFramedTransport.Factory());
                         args.protocolFactory(new TBinaryProtocol.Factory());
-                        args.processor(managementProcessor);
-                        args.selectorThreads(8*description.getNcores());
-                        args.workerThreads(8*description.getNcores());
+                        args.processor(mProcessor);
+                        args.selectorThreads(8*myDescription.getNcores());
+                        args.workerThreads(8*myDescription.getNcores());
 
                         TServer server = new TThreadedSelectorServer(args);
                         server.serve();
@@ -153,14 +153,14 @@ public abstract class BaseServer implements IServer {
                 public Void call() {
                     try {
 
-                        TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getMport());
+                        TNonblockingServerTransport transport = new TNonblockingServerSocket(myDescription.getMport());
                         TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(transport);
 
                         args.transportFactory(new TFramedTransport.Factory());
                         args.protocolFactory(new TBinaryProtocol.Factory());
-                        args.processor(passwordProcessor);
-                        args.selectorThreads(8*description.getNcores());
-                        args.workerThreads(8*description.getNcores());
+                        args.processor(pProcessor);
+                        args.selectorThreads(8*myDescription.getNcores());
+                        args.workerThreads(8*myDescription.getNcores());
 
                         TServer server = new TThreadedSelectorServer(args);
                         server.serve();

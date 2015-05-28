@@ -4,5 +4,5 @@ import ece454750s15a1.A1Management;
 import org.apache.thrift.TException;
 
 public interface IManagementServiceRequest {
-    public <T> T perform(A1Management.Iface client) throws TException;
+    <T> T perform(A1Management.Iface client) throws TException;
 }

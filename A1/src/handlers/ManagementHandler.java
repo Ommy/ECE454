@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ManagementHandler extends BaseHandler implements A1Management.Iface {
 
-    protected ManagementHandler(IServer server) {
+    public ManagementHandler(IServer server) {
         super(server);
     }
 

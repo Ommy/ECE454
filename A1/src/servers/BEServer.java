@@ -8,7 +8,7 @@ public class BEServer extends BaseServer {
 
     public static void main(String[] args) {
         BEServer server = new BEServer(args, ServerType.BE);
-        server.run(new BPasswordHandler(), new ManagementHandler());
+        server.run(new BPasswordHandler(), new ManagementHandler(server));
     }
 
     public BEServer(String[] args, ServerType type) {

@@ -60,7 +60,6 @@
         <sleep seconds="2"/>
         <java classname="clients.JavaClient" timeout="10000" classpathref="run.classpath" failonerror="true" />
       </sequential>
-
     </parallel>
   </target>
 

@@ -2,6 +2,7 @@ package handlers;
 
 import ece454750s15a1.A1Password;
 import org.mindrot.jbcrypt.BCrypt;
+import servers.IServer;
 
 public class BPasswordHandler implements A1Password.Iface {
 

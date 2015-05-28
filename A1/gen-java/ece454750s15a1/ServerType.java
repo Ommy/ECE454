@@ -12,9 +12,8 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 public enum ServerType implements org.apache.thrift.TEnum {
-  SEED(0),
-  FE(1),
-  BE(2);
+  FE(0),
+  BE(1);
 
   private final int value;
 
@@ -36,10 +35,8 @@ public enum ServerType implements org.apache.thrift.TEnum {
   public static ServerType findByValue(int value) { 
     switch (value) {
       case 0:
-        return SEED;
-      case 1:
         return FE;
-      case 2:
+      case 1:
         return BE;
       default:
         return null;

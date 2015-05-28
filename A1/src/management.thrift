@@ -9,7 +9,6 @@ struct PerfCounters {
 
 // custom interfaces
 enum ServerType {
-    SEED,
     FE,
     BE
 }

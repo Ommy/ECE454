@@ -3,26 +3,28 @@ package servers;
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.*;
+import services.IManagementServiceRequest;
+import services.ServiceExecutor;
+import services.SimpleScheduler;
 
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
-public abstract class Server {
+public abstract class BaseServer implements IServer {
 
-    protected final ServerData myData;
-    protected final ServerDescription myDescription;
+    private final ServiceExecutor executor;
 
-    protected final List<String> seedHosts;
-    protected final List<Integer> seedPorts;
+    private final ServerData myData;
+    private final ServerDescription myDescription;
 
-    protected Server(String[] args, ServerType type) {
+    private final List<String> seedHosts;
+    private final List<Integer> seedPorts;
+
+    protected BaseServer(String[] args, ServerType type) {
+        executor = new ServiceExecutor(this, new SimpleScheduler(this));
         seedHosts = new ArrayList<String>();
         seedPorts = new ArrayList<Integer>();
 
@@ -33,15 +35,15 @@ public abstract class Server {
 
         List<String> seedsList = new ArrayList<String>();
         for(int i = 0; i < args.length; i++) {
-            if (args[i].equals("-host") && i+1 < args.length) {
+            if (args[i].equals("-host") && (i+1 < args.length)) {
                 host = args[i+1];
-            } else if (args[i].equals("-pport") && i+1 < args.length) {
+            } else if (args[i].equals("-pport") && (i+1 < args.length)) {
                 pport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-mport") && i+1 < args.length) {
+            } else if (args[i].equals("-mport") && (i+1 < args.length)) {
                 mport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-ncores") && i+1 < args.length) {
+            } else if (args[i].equals("-ncores") && (i+1 < args.length)) {
                 ncores = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-seeds") && i+1 < args.length) {
+            } else if (args[i].equals("-seeds") && (i+1 < args.length)) {
                 seedsList = Arrays.asList(args[i+1].split(","));
             }
         }
@@ -52,70 +54,75 @@ public abstract class Server {
             seedPorts.add(Integer.parseInt(splitSeed[1]));
         }
 
-        if (type == ServerType.FE) {
-            if (isSeedNode()) {
-                type = ServerType.SEED;
-            }
-        }
-
         myDescription = new ServerDescription(host, pport, mport, ncores, type);
-        myData = new ServerData(Arrays.asList(myDescription), new ArrayList<ServerDescription>());
+        myData = new ServerData(Arrays.asList(myDescription), new CopyOnWriteArrayList<ServerDescription>());
     }
 
-    public void onStartupRegister() {
-        try {
-            if (!isSeedNode()) {
-
-                final ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
-                final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-
-                for (int i = 0; i < seedHosts.size(); ++i) {
-                    final String seedHost = seedHosts.get(i);
-                    final int seedPort = seedPorts.get(i);
-
-                    // type should not be void
-                    workers.add(new Callable<Void>() {
-
-                        @Override
-                        public Void call() {
-                        try {
-                            TTransport transport = new TSocket(seedHost, seedPort);
-                            TProtocol protocol = new TBinaryProtocol(transport);
-
-                            transport.open();
-                            A1Management.Client client = new A1Management.Client(protocol);
-
-                            client.exchangeServerData();
-
-                            transport.close();
-
-                        } catch(TException te) {
-                            te.printStackTrace();
-                        }
-
-                        return null;
-                        }
-                    });
-                }
-
-                executor.invokeAny(workers);
-
-                // startup
-                // peers.add();
-
+    @Override
+    public boolean isSeedNode(String host, int mport) {
+        boolean isSeed = false;
+        for (int i = 0; i < seedHosts.size(); ++i) {
+            if (seedHosts.get(i).equals(host) && seedPorts.get(i).equals(mport)) {
+                isSeed = true;
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+        }
+        return isSeed;
+    }
+
+    @Override
+    public ServerDescription getDescription() {
+        return new ServerDescription(myDescription);
+    }
+
+    @Override
+    public ServerData getData() {
+        return new ServerData(myData);
+    }
+
+    @Override
+    public void updateData(ServerData data) {
+        // handle new data
+        myData.onlineServers.addAll(data.onlineServers);
+    }
+
+    private boolean isSeedNode() {
+        return isSeedNode(myDescription.getHost(), myDescription.getMport());
+    }
+
+    private void onStartupRegister() {
+        if (isSeedNode()) {
+            return;
+        }
+
+        // add self to list of online servers
+        myData.addToOnlineServers(myDescription);
+
+        final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
+        for (int i = 0; i < seedHosts.size(); ++i) {
+            final String seedHost = seedHosts.get(i);
+            final int seedPort = seedPorts.get(i);
+
+            executor.requestExecute(new IManagementServiceRequest() {
+                @Override
+                public ServerData perform(A1Management.Iface client) throws TException {
+                    ServerData theirData = client.exchangeServerData(myData);
+                    return theirData;
+                }
+            });
         }
     }
 
-    public void onStartupInitializeServices(final A1Password.Processor passwordProcessor, final A1Management.Processor managementProcessor) {
+    private void onStartupInitializeServices(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
+
+        final A1Password.Processor pProcessor = new A1Password.Processor<A1Password.Iface>(pHandler);
+        final A1Management.Processor mProcessor = new A1Management.Processor<A1Management.Iface>(mHandler);
 
         try {
             ExecutorService executor = Executors.newFixedThreadPool(2);
+
             final Callable<Void> managementRunnable = new Callable<Void>() {
+
+
 
                 @Override
                 public Void call() {
@@ -172,14 +179,9 @@ public abstract class Server {
         }
     }
 
-    public boolean isSeedNode() {
-        boolean isSeed = false;
-        for (int i = 0; i < seedHosts.size(); ++i) {
-            if (seedHosts.get(i).equals(description.getHost()) && seedPorts.get(i).equals(description.getMport())) {
-                isSeed = true;
-            }
-        }
-        return isSeed;
-    }
+    protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
+        onStartupRegister();
 
+        onStartupInitializeServices(pHandler, mHandler);
+    }
 }

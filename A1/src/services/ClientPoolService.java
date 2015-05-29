@@ -15,6 +15,7 @@ import servers.IServer;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.HashMap;
 
 public class ClientPoolService implements Closeable {
@@ -67,10 +68,12 @@ public class ClientPoolService implements Closeable {
         try {
             System.out.println("Re-using client connection");
 
-            Client<A1Management.Client> client = Client.Factory.createSimpleManagementClient(server.getHost(), server.getMport());
-            client.open();
+            Client<A1Management.Client> client = getManagementClient(server);
+
+            if (!client.getTransport().isOpen()){
+                client.open();
+            }
             result = request.perform(client.getClient());
-            client.close();
 
             System.out.println("Completed re-usable client connection");
         } catch (TException te) {
@@ -78,22 +81,21 @@ public class ClientPoolService implements Closeable {
             te.printStackTrace();
 
             handleClientFailed(server);
-        } catch (IOException e) {
-            System.out.println("Failed to re-use client connection: IOException");
-            e.printStackTrace();
+        } catch (ConnectException ce) {
+            server.
         }
 
         return result;
     }
 
-    public <T> T call(ServerDescription server, IPasswordServiceRequest request) {
+    public <T> T call(ServerDescription targetServer, IPasswordServiceRequest request) {
         System.out.println("ClientPoolService call - IPasswordService");
-
-        Client<A1Password.Client> client = getPasswordClient(server);
 
         T value = null;
         try {
             System.out.println("Re-using client connection");
+
+            Client<A1Password.Client> client = getPasswordClient(targetServer);
 
             value = request.perform(client.getClient());
 
@@ -102,7 +104,7 @@ public class ClientPoolService implements Closeable {
             System.out.println("Failed to re-use client connection");
             te.printStackTrace();
 
-            handleClientFailed(server);
+            handleClientFailed(targetServer);
         }
 
         return value;
@@ -206,12 +208,6 @@ public class ClientPoolService implements Closeable {
                 A1Management.Client client = new A1Management.Client.Factory().getClient(protocol);
 
                 Client<A1Management.Client> continuousClient = new Client<A1Management.Client>(transport, protocol, client);
-//
-//                try {
-//                    transport.open();
-//                } catch (TException te) {
-//                    te.printStackTrace();
-//                }
 
                 return continuousClient;
             }
@@ -222,12 +218,6 @@ public class ClientPoolService implements Closeable {
                 T client = factory.getClient(protocol);
 
                 Client<T> continuousClient = new Client<T>(transport, protocol, client);
-//
-//                try {
-//                    transport.open();
-//                } catch (TException te) {
-//                    te.printStackTrace();
-//                }
 
                 return continuousClient;
             }
@@ -238,12 +228,6 @@ public class ClientPoolService implements Closeable {
                 T client = factory.getClient(protocol);
 
                 Client<T> continuousClient = new Client<T>(transport, protocol, client);
-//
-//                try {
-//                    transport.open();
-//                } catch (TException te) {
-//                    te.printStackTrace();
-//                }
 
                 return continuousClient;
             }

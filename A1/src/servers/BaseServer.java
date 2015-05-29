@@ -2,9 +2,9 @@ package servers;
 
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
-import org.apache.thrift.server.TThreadPoolServer;
 import services.*;
 
+import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -57,7 +57,7 @@ public abstract class BaseServer implements IServer {
     }
 
     @Override
-    public boolean isSeedNode(String host, int mport) {
+    public synchronized boolean isSeedNode(String host, int mport) {
         boolean isSeed = false;
         for (int i = 0; i < seedHosts.size(); ++i) {
             if (seedHosts.get(i).equals(host) && seedPorts.get(i).equals(mport)) {
@@ -68,17 +68,17 @@ public abstract class BaseServer implements IServer {
     }
 
     @Override
-    public ServerDescription getDescription() {
+    public synchronized ServerDescription getDescription() {
         return new ServerDescription(myDescription);
     }
 
     @Override
-    public ServerData getData() {
+    public synchronized ServerData getData() {
         return new ServerData(myData);
     }
 
     @Override
-    public void updateData(ServerData theirData) {
+    public synchronized void updateData(ServerData theirData) {
         List<ServerDescription> myOnline = myData.getOnlineServers();
         List<ServerDescription> myOffline = myData.getOfflineServers();
 
@@ -107,6 +107,12 @@ public abstract class BaseServer implements IServer {
         System.out.println("Updated data for: " + myDescription.toString());
         System.out.println("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
         System.out.println("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+    }
+
+    @Override
+    public synchronized void onConnectionFailed(ServerDescription failedServer) {
+        myData.getOnlineServers().remove(failedServer);
+        myData.getOfflineServers().add(failedServer);
     }
 
     private boolean isSeedNode() {
@@ -141,7 +147,10 @@ public abstract class BaseServer implements IServer {
                                 return theirData;
                             }
                         });
-                        server.updateData(theirData);
+
+                        if (theirData != null) {
+                            server.updateData(theirData);
+                        }
 
                         System.out.println("Completed first registration handshake with seed");
                         return null;
@@ -157,7 +166,6 @@ public abstract class BaseServer implements IServer {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-
 
         System.out.println("Completed registering with any endpoint");
     }
@@ -202,16 +210,21 @@ public abstract class BaseServer implements IServer {
                             // gossip protocol should handshake with any online servers
                             serviceExecutor.requestExecuteAny(new IManagementServiceRequest() {
                                 @Override
-                                public Void perform(A1Management.Iface client) throws TException {
+                                public Void perform(A1Management.Iface client) throws TException, ConnectException {
                                     System.out.println("Begin gossip handshake");
 
                                     ServerData theirData = client.exchangeServerData(myData);
+                                    if (theirData == null) {
+                                        throw new ConnectException();
+                                    }
+
                                     myServer.updateData(theirData);
 
                                     System.out.println("End gossip handshake");
                                     return null;
                                 }
                             });
+
                             Thread.sleep(100);
 
                         } else {
@@ -235,6 +248,5 @@ public abstract class BaseServer implements IServer {
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
         registerWithSeedNodes();
         initializeEndpoints(pHandler, mHandler);
-
     }
 }

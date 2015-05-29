@@ -29,7 +29,6 @@ public class ServiceExecutor {
         return clients.call(server, request);
     }
 
-
     public <T> T requestExecute(ServerType type, IManagementServiceRequest request) throws ServiceUnavailableException {
         ServerDescription server = scheduler.getNextServerByType(type);
         return requestExecuteToServer(server, request);

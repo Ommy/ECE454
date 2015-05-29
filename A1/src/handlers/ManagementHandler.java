@@ -30,7 +30,4 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
         server.updateData(theirData);
         return server.getData();
     }
-
-
-
 }

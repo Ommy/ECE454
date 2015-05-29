@@ -29,9 +29,9 @@ public class EndpointProvider {
 //            args.workerThreads(description.getNcores()*4);
 //
 //            // TODO: Determine a better threading strategy
-//            System.out.println("Starting server on: " + description.getHost() + ":" + description.getMport());
-//            TServer server = new TThreadedSelectorServer(args);
-//            server.serve();
+//            System.out.println("Starting myServer on: " + description.getHost() + ":" + description.getMport());
+//            TServer myServer = new TThreadedSelectorServer(args);
+//            myServer.serve();
 
         } catch (TException te) {
             // TODO: Handle exception
@@ -61,9 +61,9 @@ public class EndpointProvider {
 //            args.workerThreads(description.getNcores() * 4);
 //
 //            // TODO: Determine a better threading strategy
-//            System.out.println("Starting server on: " + description.getHost() + ":" + description.getPport());
-//            TServer server = new TThreadedSelectorServer(args);
-//            server.serve();
+//            System.out.println("Starting myServer on: " + description.getHost() + ":" + description.getPport());
+//            TServer myServer = new TThreadedSelectorServer(args);
+//            myServer.serve();
 
         } catch (TException te) {
             // TODO: Handle exception

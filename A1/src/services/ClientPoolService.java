@@ -3,7 +3,6 @@ package services;
 import ece454750s15a1.A1Management;
 import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
-import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.TServiceClientFactory;
@@ -19,14 +18,14 @@ import java.net.ConnectException;
 import java.util.HashMap;
 
 public class ClientPoolService implements Closeable {
-    public final IServer server;
+    public final IServer myServer;
 
     private HashMap<String, ServerDescription> servers;
     private HashMap<String, Client<A1Management.Client>> managementClients;
     private HashMap<String, Client<A1Password.Client>> passwordClients;
 
     public ClientPoolService(IServer server) {
-        this.server = server;
+        this.myServer = server;
 
         servers = new HashMap<String, ServerDescription>();
         managementClients = new HashMap<String, Client<A1Management.Client>>();
@@ -61,14 +60,14 @@ public class ClientPoolService implements Closeable {
         return result;
     }
 
-    public <T> T call(ServerDescription server, IManagementServiceRequest request) {
+    public <T> T call(ServerDescription targetServer, IManagementServiceRequest request) {
         System.out.println("ClientPoolService call - IManagementService");
 
         T result = null;
         try {
             System.out.println("Re-using client connection");
 
-            Client<A1Management.Client> client = getManagementClient(server);
+            Client<A1Management.Client> client = getManagementClient(targetServer);
 
             if (!client.getTransport().isOpen()){
                 client.open();
@@ -80,9 +79,9 @@ public class ClientPoolService implements Closeable {
             System.out.println("Failed to re-use client connection: TException");
             te.printStackTrace();
 
-            handleClientFailed(server);
+            handleClientFailed(targetServer);
         } catch (ConnectException ce) {
-            server.
+            myServer.onConnectionFailed(targetServer);
         }
 
         return result;

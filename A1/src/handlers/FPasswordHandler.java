@@ -3,7 +3,6 @@ package handlers;
 import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
-import org.mindrot.jbcrypt.BCrypt;
 import servers.IServer;
 import services.IPasswordServiceRequest;
 

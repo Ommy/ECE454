@@ -54,7 +54,7 @@ public abstract class BaseServer implements IServer {
         }
 
         myDescription = new ServerDescription(host, pport, mport, ncores, type);
-        myData = new ServerData(Arrays.asList(myDescription), new ArrayList<ServerDescription>());
+        myData = new ServerData(new CopyOnWriteArrayList<ServerDescription>((Arrays.asList(myDescription))), new CopyOnWriteArrayList<ServerDescription>());
     }
 
     @Override
@@ -83,30 +83,29 @@ public abstract class BaseServer implements IServer {
         List<ServerDescription> myOnline = myData.getOnlineServers();
         List<ServerDescription> myOffline = myData.getOfflineServers();
 
+        System.out.println(myData.toString());
+        System.out.println("Entering updateData()");
         // update my list of online servers
+        // TODO Maybe we should be checking status?
         for (ServerDescription onlineServer: theirData.getOnlineServers()) {
-            System.out.println("Updating online data..." + onlineServer.toString());
-
             if (!myOnline.contains(onlineServer)) {
                 myOnline.add(onlineServer);
             }
         }
 
-        System.out.println("Updating offline data...");
         // update my list of offline servers
         for (ServerDescription offlineServer: theirData.getOfflineServers()) {
-            System.out.println("Updating offline data..." + offlineServer.toString());
             if (!myOffline.contains(offlineServer)) {
                 myOffline.add(offlineServer);
             }
         }
 
-        System.out.println("Updating offline data...");
-
         // remove servers that are offline
         myOnline.removeAll(myOffline);
 
-        System.out.println("Completed updating data...");
+        System.out.println("Leaving updateData()");
+        System.out.println(myData.toString());
+
     }
 
     private boolean isSeedNode() {
@@ -169,7 +168,7 @@ public abstract class BaseServer implements IServer {
 
         try {
             // TODO: Do we need to run these on a new thread?
-            ExecutorService executor = Executors.newFixedThreadPool(2);
+            ExecutorService executor = Executors.newFixedThreadPool(3);
 
             final Callable<Void> managementRunnable = new Callable<Void>() {
 
@@ -189,7 +188,28 @@ public abstract class BaseServer implements IServer {
                 }
             };
 
-            executor.invokeAll(Arrays.asList(managementRunnable, passwordRunnable));
+            final IServer server = this;
+            final Callable<Void> gossipRunnable = new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    while (true) {
+                        serviceExecutor.requestExecute(new IManagementServiceRequest() {
+                            @Override
+                            public Void perform(A1Management.Iface client) throws TException {
+                                System.out.println("Perform exchangeServerData");
+                                ServerData data = client.exchangeServerData(myData);
+
+                                server.updateData(data);
+                                return null;
+                            }
+                        }, server.getDescription());
+                        Thread.sleep(100);
+                    }
+                };
+            };
+
+            executor.invokeAll(Arrays.asList(managementRunnable, passwordRunnable, gossipRunnable));
 
         } catch (Exception e) {
             // TODO: Handle exception
@@ -200,5 +220,6 @@ public abstract class BaseServer implements IServer {
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
         registerWithSeedNodes();
         initializeEndpoints(pHandler, mHandler);
+
     }
 }

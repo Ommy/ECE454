@@ -17,12 +17,16 @@ public class SimpleScheduler implements IScheduler {
     }
 
     @Override
-    public ServerDescription next(final ServerType type) throws ServiceUnavailableException {
+    public ServerDescription next(final ServerType type, ServerDescription myServerDescription) throws ServiceUnavailableException {
         List<ServerDescription> onlineServers = new ArrayList<ServerDescription>();
         for (ServerDescription description: server.getData().getOnlineServers()) {
             if (description.getType() == type) {
                 onlineServers.add(description);
             }
+        }
+
+        if (onlineServers.contains(myServerDescription)) {
+            onlineServers.remove(myServerDescription);
         }
 
         if (onlineServers.size() == 0) {
@@ -35,8 +39,12 @@ public class SimpleScheduler implements IScheduler {
     }
 
     @Override
-    public ServerDescription nextAny() throws ServiceUnavailableException {
+    public ServerDescription nextAny(ServerDescription description) throws ServiceUnavailableException {
         List<ServerDescription> onlineServers = new ArrayList<ServerDescription>(server.getData().getOnlineServers());
+
+        if (onlineServers.contains(description)) {
+            onlineServers.remove(description);
+        }
 
         if (onlineServers.size() == 0) {
             throw new ServiceUnavailableException("Could not find any available servers");

@@ -31,16 +31,7 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
         server.updateData(theirData);
         return server.getData();
     }
-//
-//        // Determine how to send this to the right client
-//        return executor.requestExecute(new IManagementServiceRequest() {
-//            @Override
-//            public ServerData perform(A1Management.Iface client) throws TException {
-//                System.out.println("Exchanging data..." + ourData.toString());
-//                ServerData theirData = client.exchangeServerData(ourData);
-//                System.out.println("Completed exchange");
-//                return theirData;
-//            }
-//        });
-//    }
+
+
+
 }

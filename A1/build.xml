@@ -36,12 +36,12 @@
   </target>
 
     <target name="generate" description="generate thrift files" >
-      <exec executable="C:/bin/thrift-0.9.1">
+      <exec executable="/usr/local/bin/thrift">
         <arg value="--gen" />
         <arg value="java" />
         <arg value="${src}/password.thrift" />
       </exec>
-      <exec executable="C:/bin/thrift-0.9.1">
+      <exec executable="/usr/local/bin/thrift">
         <arg value="--gen" />
         <arg value="java" />
         <arg value="${src}/management.thrift" />

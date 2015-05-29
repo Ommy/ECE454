@@ -27,18 +27,18 @@ public class ServiceExecutor {
         return clients.call(server, request);
     }
 
-    public <T> T requestExecute(ServerType type, IManagementServiceRequest request) throws ServiceUnavailableException {
-        ServerDescription server = scheduler.next(type);
+    public <T> T requestExecute(ServerType type, IManagementServiceRequest request, ServerDescription description) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.next(type, description);
         return requestExecuteToServer(server, request);
     }
 
-    public <T> T requestExecute(ServerType type, IPasswordServiceRequest request) throws ServiceUnavailableException {
-        ServerDescription server = scheduler.next(type);
+    public <T> T requestExecute(ServerType type, IPasswordServiceRequest request, ServerDescription description) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.next(type, description);
         return requestExecuteToServer(server, request);
     }
 
-    public <T> T requestExecute(IManagementServiceRequest request) throws ServiceUnavailableException {
-        ServerDescription server = scheduler.nextAny();
+    public <T> T requestExecute(IManagementServiceRequest request, ServerDescription description) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.nextAny(description);
         return requestExecuteToServer(server, request);
     }
 }

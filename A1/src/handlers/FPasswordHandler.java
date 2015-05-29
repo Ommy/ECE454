@@ -22,7 +22,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
                 System.out.println("Thread running...");
                 return client.hashPassword(password, logRounds);
             }
-        });
+        }, server.getDescription());
     }
 
     @Override
@@ -32,6 +32,6 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
             public Boolean perform(A1Password.Iface client) throws TException {
                 return client.checkPassword(password, hash);
             }
-        });
+        }, server.getDescription());
     }
 }

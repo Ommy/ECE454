@@ -66,6 +66,7 @@ public class ClientPoolService implements Closeable {
             System.out.println("Perform");
 
             final A1Management.Iface client = managementClients.get(hash(server)).getClient();
+            System.out.println(client.toString());
             value = request.perform(client);
 
             System.out.println("Performed");
@@ -164,9 +165,9 @@ public class ClientPoolService implements Closeable {
         public static class Factory {
 
             public static Client<A1Management.Client> createSimpleManagementClient(String host, int mport) {
-//                TTransport transport = new TFramedTransport(new TSocket(host, mport));
-//                TProtocol protocol = new TBinaryProtocol(transport);
-//                A1Management.Client client = new A1Management.Client.Factory().getClient(protocol);
+                TTransport transport = new TSocket(host, mport);
+                TProtocol protocol = new TBinaryProtocol(transport);
+                A1Management.Client client = new A1Management.Client.Factory().getClient(protocol);
 
                 Client<A1Management.Client> continuousClient = new Client<A1Management.Client>(transport, protocol, client);
 
@@ -180,9 +181,9 @@ public class ClientPoolService implements Closeable {
             }
 
             public static <T extends TServiceClient> Client<T> createSimpleClient(ServerDescription server, TServiceClientFactory<T> factory) {
-//                TTransport transport = new TFramedTransport(new TSocket(server.getHost(), server.getPport()));
-//                TProtocol protocol = new TBinaryProtocol(transport);
-//                T client = factory.getClient(protocol);
+                TTransport transport = new TSocket(server.getHost(), server.getPport());
+                TProtocol protocol = new TBinaryProtocol(transport);
+                T client = factory.getClient(protocol);
 
                 Client<T> continuousClient = new Client<T>(transport, protocol, client);
 

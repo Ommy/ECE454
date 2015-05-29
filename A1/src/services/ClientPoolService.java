@@ -3,12 +3,12 @@ package services;
 import ece454750s15a1.A1Management;
 import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
+import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.TServiceClientFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import servers.IServer;
@@ -37,11 +37,17 @@ public class ClientPoolService implements Closeable {
     }
 
     public <T> T callOnce(String host, int mport, IManagementServiceRequest request) {
+
         T result = null;
         try {
+            System.out.println("Calling with one time client connection");
+
             Client<A1Management.Client> client = Client.Factory.createSimpleManagementClient(host, mport);
+            client.open();
             result = request.perform(client.getClient());
             client.close();
+
+            System.out.println("Completed one time client connection");
         } catch (TException te) {
             // TODO: Handle errors
             System.out.println("callOnce failed 1");
@@ -55,57 +61,81 @@ public class ClientPoolService implements Closeable {
     }
 
     public <T> T call(ServerDescription server, IManagementServiceRequest request) {
-        System.out.println("ClientPoolService call");
+        System.out.println("ClientPoolService call - IManagementService");
 
-        if (!managementClients.containsKey(hash(server))) {
-            createClient(server, managementClients, new A1Management.Client.Factory());
-        }
-
-        T value = null;
+        T result = null;
         try {
-            System.out.println("Perform");
+            System.out.println("Re-using client connection");
 
-            final A1Management.Iface client = managementClients.get(hash(server)).getClient();
-            System.out.println(client.toString());
-            value = request.perform(client);
+            Client<A1Management.Client> client = Client.Factory.createSimpleManagementClient(server.getHost(), server.getMport());
+            client.open();
+            result = request.perform(client.getClient());
+            client.close();
 
-            System.out.println("Performed");
+            System.out.println("Completed re-usable client connection");
         } catch (TException te) {
-            System.out.println("Failed");
+            System.out.println("Failed to re-use client connection: TException");
             te.printStackTrace();
+
             handleClientFailed(server);
+        } catch (IOException e) {
+            System.out.println("Failed to re-use client connection: IOException");
+            e.printStackTrace();
         }
 
-        return value;
+        return result;
     }
 
     public <T> T call(ServerDescription server, IPasswordServiceRequest request) {
-        System.out.println("ClientPoolService call");
+        System.out.println("ClientPoolService call - IPasswordService");
 
-        if (!passwordClients.containsKey(hash(server))) {
-            createClient(server, passwordClients, new A1Password.Client.Factory());
-        }
+        Client<A1Password.Client> client = getPasswordClient(server);
 
         T value = null;
         try {
-            value = request.perform(passwordClients.get(hash(server)).getClient());
+            System.out.println("Re-using client connection");
+
+            value = request.perform(client.getClient());
+
+            System.out.println("Completed re-usable client connection");
         } catch (TException te) {
+            System.out.println("Failed to re-use client connection");
             te.printStackTrace();
+
             handleClientFailed(server);
         }
 
         return value;
     }
 
-    private <T extends TServiceClient> void createClient(ServerDescription server, HashMap<String, Client<T>> clients, TServiceClientFactory<T> factory) {
-        if (!clients.containsKey(hash(server))) {
-            Client<T> client = Client.Factory.createSimpleClient(server, factory);
-            clients.put(hash(server), client);
+    private Client<A1Management.Client> getManagementClient(ServerDescription server) {
+        Client<A1Management.Client> client = null;
+        if (!managementClients.containsKey(hash(server))) {
+            client = Client.Factory.createSimpleManagementClient(server, new A1Management.Client.Factory());
+            managementClients.put(hash(server), client);
             servers.put(hash(server), server);
+        } else {
+            client = managementClients.get(hash(server));
         }
+        return client;
+    }
+
+    private Client<A1Password.Client> getPasswordClient(ServerDescription server) {
+        Client<A1Password.Client> client = null;
+        if (!passwordClients.containsKey(hash(server))) {
+            client = Client.Factory.createSimplePasswordClient(server, new A1Password.Client.Factory());
+            passwordClients.put(hash(server), client);
+            servers.put(hash(server), server);
+        } else {
+            client = passwordClients.get(hash(server));
+        }
+        return client;
     }
 
     private void handleClientFailed(ServerDescription server) {
+
+        System.out.println("Removing client from client pool");
+
         if (managementClients.containsKey(hash(server))) {
             Client<A1Management.Client> client = managementClients.get(hash(server));
             try {
@@ -114,7 +144,6 @@ public class ClientPoolService implements Closeable {
                 te.printStackTrace();
             }
             managementClients.remove(hash(server));
-            servers.remove(hash(server));
         }
 
         if (passwordClients.containsKey(hash(server))) {
@@ -125,6 +154,9 @@ public class ClientPoolService implements Closeable {
                 te.printStackTrace();
             }
             passwordClients.remove(hash(server));
+        }
+
+        if (servers.containsKey(hash(server))) {
             servers.remove(hash(server));
         }
     }
@@ -138,6 +170,10 @@ public class ClientPoolService implements Closeable {
         for (Client<A1Password.Client> client: passwordClients.values()) {
             client.close();
         }
+
+        managementClients.clear();
+        passwordClients.clear();
+        servers.clear();
     }
 
     public static class Client<T extends TServiceClient> implements Closeable {
@@ -170,28 +206,44 @@ public class ClientPoolService implements Closeable {
                 A1Management.Client client = new A1Management.Client.Factory().getClient(protocol);
 
                 Client<A1Management.Client> continuousClient = new Client<A1Management.Client>(transport, protocol, client);
-
-                try {
-                    transport.open();
-                } catch (TException te) {
-                    te.printStackTrace();
-                }
+//
+//                try {
+//                    transport.open();
+//                } catch (TException te) {
+//                    te.printStackTrace();
+//                }
 
                 return continuousClient;
             }
 
-            public static <T extends TServiceClient> Client<T> createSimpleClient(ServerDescription server, TServiceClientFactory<T> factory) {
+            public static <T extends TServiceClient> Client<T> createSimpleManagementClient(ServerDescription server, TServiceClientFactory<T> factory) {
+                TTransport transport = new TSocket(server.getHost(), server.getMport());
+                TProtocol protocol = new TBinaryProtocol(transport);
+                T client = factory.getClient(protocol);
+
+                Client<T> continuousClient = new Client<T>(transport, protocol, client);
+//
+//                try {
+//                    transport.open();
+//                } catch (TException te) {
+//                    te.printStackTrace();
+//                }
+
+                return continuousClient;
+            }
+
+            public static <T extends TServiceClient> Client<T> createSimplePasswordClient(ServerDescription server, TServiceClientFactory<T> factory) {
                 TTransport transport = new TSocket(server.getHost(), server.getPport());
                 TProtocol protocol = new TBinaryProtocol(transport);
                 T client = factory.getClient(protocol);
 
                 Client<T> continuousClient = new Client<T>(transport, protocol, client);
-
-                try {
-                    transport.open();
-                } catch (TException te) {
-                    te.printStackTrace();
-                }
+//
+//                try {
+//                    transport.open();
+//                } catch (TException te) {
+//                    te.printStackTrace();
+//                }
 
                 return continuousClient;
             }
@@ -205,6 +257,10 @@ public class ClientPoolService implements Closeable {
             this.transport = transport;
             this.protocol = protocol;
             this.client = client;
+        }
+
+        public void open() throws TException {
+            transport.open();
         }
 
         public TTransport getTransport() {

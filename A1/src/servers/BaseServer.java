@@ -3,16 +3,14 @@ package servers;
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TThreadPoolServer;
-import services.EndpointProvider;
-import services.IManagementServiceRequest;
-import services.ServiceExecutor;
-import services.SimpleScheduler;
+import services.*;
 
 import java.util.*;
 import java.util.concurrent.*;
 
 public abstract class BaseServer implements IServer {
 
+    private final IScheduler scheduler;
     private final ServiceExecutor serviceExecutor;
 
     private final ServerData myData;
@@ -23,7 +21,8 @@ public abstract class BaseServer implements IServer {
 
     protected BaseServer(String[] args, ServerType type) {
 
-        serviceExecutor = new ServiceExecutor(this, new SimpleScheduler(this));
+        scheduler = new SimpleScheduler(this);
+        serviceExecutor = new ServiceExecutor(this, scheduler);
         seedHosts = new ArrayList<String>();
         seedPorts = new ArrayList<Integer>();
 
@@ -83,10 +82,12 @@ public abstract class BaseServer implements IServer {
         List<ServerDescription> myOnline = myData.getOnlineServers();
         List<ServerDescription> myOffline = myData.getOfflineServers();
 
-        System.out.println(myData.toString());
-        System.out.println("Entering updateData()");
+        System.out.println("Updating data for " + myDescription.toString());
+        System.out.println("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
+        System.out.println("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+
         // update my list of online servers
-        // TODO Maybe we should be checking status?
+        // TODO Figure out how to handle killed and restarting nodes
         for (ServerDescription onlineServer: theirData.getOnlineServers()) {
             if (!myOnline.contains(onlineServer)) {
                 myOnline.add(onlineServer);
@@ -103,9 +104,9 @@ public abstract class BaseServer implements IServer {
         // remove servers that are offline
         myOnline.removeAll(myOffline);
 
-        System.out.println("Leaving updateData()");
-        System.out.println(myData.toString());
-
+        System.out.println("Updated data for: " + myDescription.toString());
+        System.out.println("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
+        System.out.println("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
     }
 
     private boolean isSeedNode() {
@@ -114,14 +115,12 @@ public abstract class BaseServer implements IServer {
 
     private void registerWithSeedNodes() {
 
-        System.out.println("Registering");
-
         if (isSeedNode()) {
             System.out.println("Seed nodes don't need to register");
             return;
         }
 
-        System.out.println("Still registering");
+        System.out.println("Registering with the seed nodes");
 
         ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
         final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
@@ -143,6 +142,8 @@ public abstract class BaseServer implements IServer {
                             }
                         });
                         server.updateData(theirData);
+
+                        System.out.println("Completed first registration handshake with seed");
                         return null;
                     }
                 });
@@ -157,10 +158,12 @@ public abstract class BaseServer implements IServer {
             e.printStackTrace();
         }
 
-        System.out.println("Registered any endpoint");
+
+        System.out.println("Completed registering with any endpoint");
     }
 
     private void initializeEndpoints(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
+        System.out.println("Initializing endpoints");
 
         final A1Password.Processor pProcessor = new A1Password.Processor<A1Password.Iface>(pHandler);
         final A1Management.Processor mProcessor = new A1Management.Processor<A1Management.Iface>(mHandler);
@@ -188,23 +191,32 @@ public abstract class BaseServer implements IServer {
                 }
             };
 
-            final IServer server = this;
+            final IServer myServer = this;
             final Callable<Void> gossipRunnable = new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
                     while (true) {
-                        serviceExecutor.requestExecute(new IManagementServiceRequest() {
-                            @Override
-                            public Void perform(A1Management.Iface client) throws TException {
-                                System.out.println("Perform exchangeServerData");
-                                ServerData data = client.exchangeServerData(myData);
+                        if (myServer.getData().getOnlineServersSize() > 1) {
 
-                                server.updateData(data);
-                                return null;
-                            }
-                        }, server.getDescription());
-                        Thread.sleep(100);
+                            // gossip protocol should handshake with any online servers
+                            serviceExecutor.requestExecuteAny(new IManagementServiceRequest() {
+                                @Override
+                                public Void perform(A1Management.Iface client) throws TException {
+                                    System.out.println("Begin gossip handshake");
+
+                                    ServerData theirData = client.exchangeServerData(myData);
+                                    myServer.updateData(theirData);
+
+                                    System.out.println("End gossip handshake");
+                                    return null;
+                                }
+                            });
+                            Thread.sleep(100);
+
+                        } else {
+                            Thread.sleep(250);
+                        }
                     }
                 };
             };
@@ -213,8 +225,11 @@ public abstract class BaseServer implements IServer {
 
         } catch (Exception e) {
             // TODO: Handle exception
+            System.out.println("Continuous running endpoints failed");
             e.printStackTrace();
         }
+
+        System.out.println("Unexpected quit running endpoints failed");
     }
 
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {

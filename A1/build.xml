@@ -8,6 +8,7 @@
   <property name="build" location="build"/>
   <property name="dist" location="dist/lib"/>
   <property name="lib" value="lib" />
+  <property name="jar" value="ece454750s15a1.jar" />
 
   <path id="libs.classpath">
     <fileset dir="${lib}">
@@ -35,22 +36,34 @@
     </javac>
   </target>
 
-    <target name="generate" description="generate thrift files" >
-      <exec executable="/usr/local/bin/thrift">
-        <arg value="--gen" />
-        <arg value="java" />
-        <arg value="${src}/password.thrift" />
-      </exec>
-      <exec executable="/usr/local/bin/thrift">
-        <arg value="--gen" />
-        <arg value="java" />
-        <arg value="${src}/management.thrift" />
-      </exec>
-    </target>
+  <target name="dist" depends="compile" description="generate the jar" >
+    <jar jarfile="${dist}/${jar}" basedir="${build}"/>
+  </target>
 
-  <target name="dist" depends="compile" description="generate the distribution" >
-    <!-- Put everything in ${build} into the A1-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/A1-${DSTAMP}.jar" basedir="${build}"/>
+  <target name="generate" description="generate thrift files" >
+    <exec executable="/usr/local/bin/thrift">
+      <arg value="--gen" />
+      <arg value="java" />
+      <arg value="${src}/password.thrift" />
+    </exec>
+    <exec executable="/usr/local/bin/thrift">
+      <arg value="--gen" />
+      <arg value="java" />
+      <arg value="${src}/management.thrift" />
+    </exec>
+  </target>
+
+  <target name="generate-windows" description="generate thrift files" >
+    <exec executable="C:/bin/thrift-0.9.1">
+      <arg value="--gen" />
+      <arg value="java" />
+      <arg value="${src}/password.thrift" />
+    </exec>
+    <exec executable="C:/bin/thrift-0.9.1">
+      <arg value="--gen" />
+      <arg value="java" />
+      <arg value="${src}/management.thrift" />
+    </exec>
   </target>
 
   <target name="run-fe" depends="dist">

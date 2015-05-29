@@ -15,30 +15,33 @@ public class ServiceExecutor {
         clients = new ClientPoolService(server);
     }
 
+    // Only use for registering with seed nodes when you have no ServerDescription data
     public <T> T requestExecuteToServer(String host, int mport, IManagementServiceRequest request) {
         return clients.callOnce(host, mport, request);
     }
 
-    public <T> T requestExecuteToServer(ServerDescription server, IManagementServiceRequest request) {
+    // Implementations for Management and Password requests
+    private <T> T requestExecuteToServer(ServerDescription server, IManagementServiceRequest request) {
         return clients.call(server, request);
     }
 
-    public <T> T requestExecuteToServer(ServerDescription server, IPasswordServiceRequest request) {
+    private <T> T requestExecuteToServer(ServerDescription server, IPasswordServiceRequest request) {
         return clients.call(server, request);
     }
 
-    public <T> T requestExecute(ServerType type, IManagementServiceRequest request, ServerDescription description) throws ServiceUnavailableException {
-        ServerDescription server = scheduler.next(type, description);
+
+    public <T> T requestExecute(ServerType type, IManagementServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.getNextServerByType(type);
         return requestExecuteToServer(server, request);
     }
 
-    public <T> T requestExecute(ServerType type, IPasswordServiceRequest request, ServerDescription description) throws ServiceUnavailableException {
-        ServerDescription server = scheduler.next(type, description);
+    public <T> T requestExecute(ServerType type, IPasswordServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.getNextServerByType(type);
         return requestExecuteToServer(server, request);
     }
 
-    public <T> T requestExecute(IManagementServiceRequest request, ServerDescription description) throws ServiceUnavailableException {
-        ServerDescription server = scheduler.nextAny(description);
+    public <T> T requestExecuteAny(IManagementServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.getNextServer();
         return requestExecuteToServer(server, request);
     }
 }

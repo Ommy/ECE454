@@ -10,23 +10,23 @@ import java.util.List;
 import java.util.Random;
 
 public class SimpleScheduler implements IScheduler {
-    private IServer server;
+    private final IServer myServer;
 
     public SimpleScheduler(IServer server) {
-        this.server = server;
+        myServer = server;
     }
 
     @Override
-    public ServerDescription next(final ServerType type, ServerDescription myServerDescription) throws ServiceUnavailableException {
+    public ServerDescription getNextServerByType(final ServerType type) throws ServiceUnavailableException {
         List<ServerDescription> onlineServers = new ArrayList<ServerDescription>();
-        for (ServerDescription description: server.getData().getOnlineServers()) {
+        for (ServerDescription description: myServer.getData().getOnlineServers()) {
             if (description.getType() == type) {
                 onlineServers.add(description);
             }
         }
 
-        if (onlineServers.contains(myServerDescription)) {
-            onlineServers.remove(myServerDescription);
+        if (onlineServers.contains(myServer.getDescription())) {
+            onlineServers.remove(myServer.getDescription());
         }
 
         if (onlineServers.size() == 0) {
@@ -39,11 +39,11 @@ public class SimpleScheduler implements IScheduler {
     }
 
     @Override
-    public ServerDescription nextAny(ServerDescription description) throws ServiceUnavailableException {
-        List<ServerDescription> onlineServers = new ArrayList<ServerDescription>(server.getData().getOnlineServers());
+    public ServerDescription getNextServer() throws ServiceUnavailableException {
+        List<ServerDescription> onlineServers = new ArrayList<ServerDescription>(myServer.getData().getOnlineServers());
 
-        if (onlineServers.contains(description)) {
-            onlineServers.remove(description);
+        if (onlineServers.contains(myServer.getDescription())) {
+            onlineServers.remove(myServer.getDescription());
         }
 
         if (onlineServers.size() == 0) {

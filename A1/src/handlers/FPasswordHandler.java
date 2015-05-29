@@ -15,23 +15,25 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
     @Override
     public String hashPassword(final String password, final short logRounds) throws TException {
-        System.out.println("FE Hashing...");
+        System.out.println("FE Server received request to hashPassword");
         return executor.requestExecute(ServerType.BE, new IPasswordServiceRequest() {
             @Override
             public String perform(A1Password.Iface client) throws TException {
-                System.out.println("Thread running...");
+                System.out.println("Calling hashPassword on client");
                 return client.hashPassword(password, logRounds);
             }
-        }, server.getDescription());
+        });
     }
 
     @Override
     public boolean checkPassword(final String password, final String hash) throws TException {
+        System.out.println("FE Server received request to checkPassword");
         return (Boolean)executor.requestExecute(ServerType.BE, new IPasswordServiceRequest() {
             @Override
             public Boolean perform(A1Password.Iface client) throws TException {
+                System.out.println("Calling checkPassword on client");
                 return client.checkPassword(password, hash);
             }
-        }, server.getDescription());
+        });
     }
 }

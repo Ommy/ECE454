@@ -5,11 +5,11 @@ import ece454750s15a1.ServerDescription;
 
 public interface IServer {
 
-    public boolean isSeedNode(String host, int mport);
+    boolean isSeedNode(String host, int mport);
 
-    public ServerDescription getDescription();
+    ServerDescription getDescription();
 
-    public ServerData getData();
+    ServerData getData();
 
-    public void updateData(ServerData data);
+    void updateData(ServerData data);
 }

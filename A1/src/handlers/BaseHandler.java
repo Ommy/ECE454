@@ -5,7 +5,7 @@ import services.ServiceExecutor;
 import services.SimpleScheduler;
 
 public abstract class BaseHandler {
-    private final IServer server;
+    protected final IServer server;
     protected final ServiceExecutor executor;
 
     protected BaseHandler(IServer server) {

@@ -12,13 +12,14 @@ public class JavaClient {
 
     public static void main(String[] args) {
         try {
-            TTransport transport = new TSocket("localhost", 16721);
+            TTransport transport = new TSocket("localhost", 2345);
             transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);
             A1Password.Client client = new A1Password.Client(protocol);
+            String pass = client.hashPassword("hunter2", (short) 10);
 
-            perform(client);
+            System.out.println("pass: " + pass);
 
             transport.close();
         } catch (TException x) {
@@ -26,8 +27,4 @@ public class JavaClient {
         }
     }
 
-    public static void perform(A1Password.Client client) throws TException {
-        String pass = client.hashPassword("hunter2", (short) 10);
-        System.out.println(pass);
-    }
 }

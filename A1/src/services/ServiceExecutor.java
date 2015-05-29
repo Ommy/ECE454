@@ -1,15 +1,15 @@
 package services;
 
 import ece454750s15a1.ServerDescription;
+import ece454750s15a1.ServerType;
+import ece454750s15a1.ServiceUnavailableException;
 import servers.IServer;
 
 public class ServiceExecutor {
-    private final IServer server;
     private final IScheduler scheduler;
     private final ClientPoolService clients;
 
     public ServiceExecutor(IServer server, IScheduler scheduler) {
-        this.server = server;
         this.scheduler = scheduler;
 
         clients = new ClientPoolService(server);
@@ -27,14 +27,19 @@ public class ServiceExecutor {
         return clients.call(server, request);
     }
 
-    public <T> T requestExecute(IManagementServiceRequest request) {
-        ServerDescription server = scheduler.next();
+    public <T> T requestExecute(ServerType type, IManagementServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.next(type);
         return requestExecuteToServer(server, request);
     }
 
-    public <T> T requestExecute(IPasswordServiceRequest request) {
-        ServerDescription server = scheduler.next();
+    public <T> T requestExecute(ServerType type, IPasswordServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.next(type);
         return requestExecuteToServer(server, request);
     }
 
+    public <T> T requestExecute(IManagementServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.nextAny();
+        return requestExecuteToServer(server, request);
+    }
 }
+

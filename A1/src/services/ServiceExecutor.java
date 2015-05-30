@@ -43,5 +43,10 @@ public class ServiceExecutor {
         ServerDescription server = scheduler.getNextServer();
         return requestExecuteToServer(server, request);
     }
+
+    public <T> T requestExecuteBest(IPasswordServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = scheduler.getBestServer();
+        return requestExecuteToServer(server, request);
+    }
 }
 

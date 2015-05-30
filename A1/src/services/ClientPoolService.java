@@ -72,6 +72,7 @@ public class ClientPoolService implements Closeable {
             if (!client.getTransport().isOpen()){
                 client.open();
             }
+
             result = request.perform(client.getClient());
 
             System.out.println("Completed re-usable client connection");
@@ -80,7 +81,6 @@ public class ClientPoolService implements Closeable {
             te.printStackTrace();
 
             handleClientFailed(targetServer);
-        } catch (ConnectException ce) {
             myServer.onConnectionFailed(targetServer);
         }
 
@@ -95,6 +95,7 @@ public class ClientPoolService implements Closeable {
             System.out.println("Re-using client connection");
 
             Client<A1Password.Client> client = getPasswordClient(targetServer);
+            System.out.println("Got client connection");
 
             value = request.perform(client.getClient());
 

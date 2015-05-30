@@ -210,12 +210,12 @@ public abstract class BaseServer implements IServer {
                             // gossip protocol should handshake with any online servers
                             serviceExecutor.requestExecuteAny(new IManagementServiceRequest() {
                                 @Override
-                                public Void perform(A1Management.Iface client) throws TException, ConnectException {
+                                public Void perform(A1Management.Iface client) throws TException {
                                     System.out.println("Begin gossip handshake");
 
                                     ServerData theirData = client.exchangeServerData(myData);
                                     if (theirData == null) {
-                                        throw new ConnectException();
+                                        throw new TException("Connection error");
                                     }
 
                                     myServer.updateData(theirData);

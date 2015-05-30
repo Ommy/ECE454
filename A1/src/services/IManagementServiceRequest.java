@@ -6,5 +6,5 @@ import org.apache.thrift.TException;
 import java.net.ConnectException;
 
 public interface IManagementServiceRequest {
-    <T> T perform(A1Management.Iface client) throws TException, ConnectException;
+    <T> T perform(A1Management.Iface client) throws TException;
 }

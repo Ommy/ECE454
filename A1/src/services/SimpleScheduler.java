@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+
 public class SimpleScheduler implements IScheduler {
     private final IServer myServer;
 
@@ -55,5 +56,35 @@ public class SimpleScheduler implements IScheduler {
         return onlineServers.get(r);
     }
 
+    @Override
+    public ServerDescription getBestServer() throws ServiceUnavailableException {
+        List<ServerDescription> onlineBackendNodes = new ArrayList<ServerDescription>();
+        int weightSum = 0;
+
+        if (myServer.getData().getOnlineServersSize() == 0) {
+            throw new ServiceUnavailableException(("Could not find any available servers"));
+        }
+
+        for (ServerDescription description : myServer.getData().getOnlineServers()) {
+            if (description.getType() == ServerType.BE) {
+                onlineBackendNodes.add(description);
+                weightSum += description.getNcores();
+            }
+        }
+
+        Random random = new Random();
+        int weightedRandom = random.nextInt(weightSum);
+
+
+        for (ServerDescription description : onlineBackendNodes) {
+            weightedRandom -= description.getNcores();
+            if (weightedRandom < description.getNcores()) {
+                return description;
+            }
+        }
+
+        // Should never reach here, but fail-safe
+        return onlineBackendNodes.get(random.nextInt(onlineBackendNodes.size()));
+    }
 
 }

@@ -4,7 +4,7 @@ import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
 import servers.IServer;
-import services.IPasswordServiceRequest;
+import requests.IPasswordServiceRequest;
 
 public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 

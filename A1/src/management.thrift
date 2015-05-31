@@ -18,7 +18,8 @@ struct ServerDescription {
     2:i32 pport,
     3:i32 mport,
     4:i32 ncores,
-    5:ServerType type
+    5:ServerType type,
+    6:list<string> seedsList
 }
 
 struct ServerData {

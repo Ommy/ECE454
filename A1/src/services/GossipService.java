@@ -4,6 +4,7 @@ import ece454750s15a1.A1Management;
 import ece454750s15a1.ServerData;
 import ece454750s15a1.ServiceUnavailableException;
 import org.apache.thrift.TException;
+import requests.IManagementServiceRequest;
 import servers.IServer;
 
 public class GossipService {

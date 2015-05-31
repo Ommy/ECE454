@@ -1,6 +1,8 @@
 package clients;
 
 import ece454750s15a1.A1Password;
+import ece454750s15a1.ServerDescription;
+import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.AsyncMethodCallback;
 import org.apache.thrift.async.TAsyncClientManager;
@@ -16,40 +18,16 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class ParallelClient {
+public class ParallelClient extends BaseClient{
 
     static int counter = 5;
     static CountDownLatch latch = new CountDownLatch(counter);
 
     public static void main(String [] args) {
 
-        String host = "localhost";
-        int pport = 6719;
-        int mport = 4848;
-        int ncores = 1;
-
-        List<String> seedsList = new ArrayList<String>();
-        for(int i = 0; i < args.length; i++) {
-            if (args[i].equals("-host") && (i+1 < args.length)) {
-                host = args[i+1];
-            } else if (args[i].equals("-pport") && (i+1 < args.length)) {
-                pport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-mport") && (i+1 < args.length)) {
-                mport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-ncores") && (i+1 < args.length)) {
-                ncores = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-seeds") && (i+1 < args.length)) {
-                seedsList = Arrays.asList(args[i + 1].split(","));
-            }
-        }
+        final ServerDescription description = parser.parse(args, ServerType.FE);
 
         try {
-            final String outHost = host;
-            final int outPport = pport;
-            final int outMport = mport;
-            final int outNcores = ncores;
-            final List<String> outSeedsList = seedsList;
-
             for(int i = 0; i < 5; ++i){
                 System.out.println("Send request i = " + i);
                 new Thread() {
@@ -57,7 +35,7 @@ public class ParallelClient {
                         try {
                             TProtocolFactory protocolFactory = new TBinaryProtocol.Factory();
                             TAsyncClientManager clientManager = new TAsyncClientManager();
-                            TNonblockingTransport transport = new TNonblockingSocket(outHost, outPport);
+                            TNonblockingTransport transport = new TNonblockingSocket(description.getHost(), description.getPport());
                             A1Password.AsyncClient client = new A1Password.AsyncClient(
                                     protocolFactory, clientManager, transport);
 

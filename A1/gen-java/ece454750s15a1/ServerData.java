@@ -438,14 +438,14 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
           case 1: // ONLINE_SERVERS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.onlineServers = new ArrayList<ServerDescription>(_list0.size);
-                for (int _i1 = 0; _i1 < _list0.size; ++_i1)
+                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
+                struct.onlineServers = new ArrayList<ServerDescription>(_list8.size);
+                for (int _i9 = 0; _i9 < _list8.size; ++_i9)
                 {
-                  ServerDescription _elem2;
-                  _elem2 = new ServerDescription();
-                  _elem2.read(iprot);
-                  struct.onlineServers.add(_elem2);
+                  ServerDescription _elem10;
+                  _elem10 = new ServerDescription();
+                  _elem10.read(iprot);
+                  struct.onlineServers.add(_elem10);
                 }
                 iprot.readListEnd();
               }
@@ -457,14 +457,14 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
           case 2: // OFFLINE_SERVERS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list3 = iprot.readListBegin();
-                struct.offlineServers = new ArrayList<ServerDescription>(_list3.size);
-                for (int _i4 = 0; _i4 < _list3.size; ++_i4)
+                org.apache.thrift.protocol.TList _list11 = iprot.readListBegin();
+                struct.offlineServers = new ArrayList<ServerDescription>(_list11.size);
+                for (int _i12 = 0; _i12 < _list11.size; ++_i12)
                 {
-                  ServerDescription _elem5;
-                  _elem5 = new ServerDescription();
-                  _elem5.read(iprot);
-                  struct.offlineServers.add(_elem5);
+                  ServerDescription _elem13;
+                  _elem13 = new ServerDescription();
+                  _elem13.read(iprot);
+                  struct.offlineServers.add(_elem13);
                 }
                 iprot.readListEnd();
               }
@@ -492,9 +492,9 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
         oprot.writeFieldBegin(ONLINE_SERVERS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.onlineServers.size()));
-          for (ServerDescription _iter6 : struct.onlineServers)
+          for (ServerDescription _iter14 : struct.onlineServers)
           {
-            _iter6.write(oprot);
+            _iter14.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -504,9 +504,9 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
         oprot.writeFieldBegin(OFFLINE_SERVERS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.offlineServers.size()));
-          for (ServerDescription _iter7 : struct.offlineServers)
+          for (ServerDescription _iter15 : struct.offlineServers)
           {
-            _iter7.write(oprot);
+            _iter15.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -540,18 +540,18 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
       if (struct.isSetOnlineServers()) {
         {
           oprot.writeI32(struct.onlineServers.size());
-          for (ServerDescription _iter8 : struct.onlineServers)
+          for (ServerDescription _iter16 : struct.onlineServers)
           {
-            _iter8.write(oprot);
+            _iter16.write(oprot);
           }
         }
       }
       if (struct.isSetOfflineServers()) {
         {
           oprot.writeI32(struct.offlineServers.size());
-          for (ServerDescription _iter9 : struct.offlineServers)
+          for (ServerDescription _iter17 : struct.offlineServers)
           {
-            _iter9.write(oprot);
+            _iter17.write(oprot);
           }
         }
       }
@@ -563,28 +563,28 @@ public class ServerData implements org.apache.thrift.TBase<ServerData, ServerDat
       BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list10 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.onlineServers = new ArrayList<ServerDescription>(_list10.size);
-          for (int _i11 = 0; _i11 < _list10.size; ++_i11)
+          org.apache.thrift.protocol.TList _list18 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.onlineServers = new ArrayList<ServerDescription>(_list18.size);
+          for (int _i19 = 0; _i19 < _list18.size; ++_i19)
           {
-            ServerDescription _elem12;
-            _elem12 = new ServerDescription();
-            _elem12.read(iprot);
-            struct.onlineServers.add(_elem12);
+            ServerDescription _elem20;
+            _elem20 = new ServerDescription();
+            _elem20.read(iprot);
+            struct.onlineServers.add(_elem20);
           }
         }
         struct.setOnlineServersIsSet(true);
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.offlineServers = new ArrayList<ServerDescription>(_list13.size);
-          for (int _i14 = 0; _i14 < _list13.size; ++_i14)
+          org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.offlineServers = new ArrayList<ServerDescription>(_list21.size);
+          for (int _i22 = 0; _i22 < _list21.size; ++_i22)
           {
-            ServerDescription _elem15;
-            _elem15 = new ServerDescription();
-            _elem15.read(iprot);
-            struct.offlineServers.add(_elem15);
+            ServerDescription _elem23;
+            _elem23 = new ServerDescription();
+            _elem23.read(iprot);
+            struct.offlineServers.add(_elem23);
           }
         }
         struct.setOfflineServersIsSet(true);

@@ -1,6 +1,8 @@
 package clients;
 
 import ece454750s15a1.A1Password;
+import ece454750s15a1.ServerDescription;
+import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
 
 import org.apache.thrift.transport.TTransport;
@@ -12,32 +14,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class JavaClient {
+public class JavaClient extends BaseClient {
 
     public static void main(String[] args) {
 
-        String host = "localhost";
-        int pport = 6719;
-        int mport = 4848;
-        int ncores = 1;
-
-        List<String> seedsList = new ArrayList<String>();
-        for(int i = 0; i < args.length; i++) {
-            if (args[i].equals("-host") && (i+1 < args.length)) {
-                host = args[i+1];
-            } else if (args[i].equals("-pport") && (i+1 < args.length)) {
-                pport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-mport") && (i+1 < args.length)) {
-                mport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-ncores") && (i+1 < args.length)) {
-                ncores = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-seeds") && (i+1 < args.length)) {
-                seedsList = Arrays.asList(args[i + 1].split(","));
-            }
-        }
+        final ServerDescription description = parser.parse(args, ServerType.FE);
 
         try {
-            TTransport transport = new TSocket(host, pport);
+            TTransport transport = new TSocket(description.getHost(), description.getPport());
             transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);

@@ -8,6 +8,4 @@ public interface IScheduler {
     ServerDescription getNextServerByType(ServerType type) throws ServiceUnavailableException;
 
     ServerDescription getNextServer() throws ServiceUnavailableException;
-
-    ServerDescription getBestServer() throws ServiceUnavailableException;
 }

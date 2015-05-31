@@ -4,13 +4,11 @@ import ece454750s15a1.*;
 import org.apache.thrift.TException;
 import services.*;
 
-import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.*;
 
 public abstract class BaseServer implements IServer {
 
-    private final IScheduler scheduler;
     private final ServiceExecutor serviceExecutor;
 
     private final ServerData myData;
@@ -21,8 +19,7 @@ public abstract class BaseServer implements IServer {
 
     protected BaseServer(String[] args, ServerType type) {
 
-        scheduler = new SimpleScheduler(this);
-        serviceExecutor = new ServiceExecutor(this, scheduler);
+        serviceExecutor = new ServiceExecutor(this);
         seedHosts = new ArrayList<String>();
         seedPorts = new ArrayList<Integer>();
 
@@ -116,17 +113,12 @@ public abstract class BaseServer implements IServer {
         myData.getOfflineServers().add(failedServer);
     }
 
-    private boolean isSeedNode() {
-        return isSeedNode(myDescription.getHost(), myDescription.getMport());
+    @Override
+    public synchronized ServiceExecutor getServiceExecutor() {
+        return serviceExecutor;
     }
 
     private void registerWithSeedNodes() {
-
-        if (isSeedNode()) {
-            System.out.println("Seed nodes don't need to register");
-            return;
-        }
-
         System.out.println("Registering with the seed nodes");
 
         ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
@@ -136,7 +128,7 @@ public abstract class BaseServer implements IServer {
             final String seedHost = seedHosts.get(i);
             final int seedPort = seedPorts.get(i);
 
-            if (!(myDescription.getHost().equals(seedHost) && myDescription.getMport() == seedPort)) {
+                if (!(myDescription.getHost().equals(seedHost) && myDescription.getMport() == seedPort)) {
 
                 workers.add(new Callable<Void>() {
                     @Override
@@ -176,11 +168,13 @@ public abstract class BaseServer implements IServer {
 
         final A1Password.Processor pProcessor = new A1Password.Processor<A1Password.Iface>(pHandler);
         final A1Management.Processor mProcessor = new A1Management.Processor<A1Management.Iface>(mHandler);
+
         final EndpointProvider endpointProvider = new EndpointProvider();
+        final GossipService gossipService = new GossipService(this);
 
         try {
             // TODO: Do we need to run these on a new thread?
-            ExecutorService executor = Executors.newFixedThreadPool(3);
+            ExecutorService threadedExecutor = Executors.newFixedThreadPool(3);
             List<Callable<Void>> servers = new ArrayList<Callable<Void>>();
 
             final Callable<Void> managementRunnable = new Callable<Void>() {
@@ -203,47 +197,19 @@ public abstract class BaseServer implements IServer {
             };
             servers.add(passwordRunnable);
 
-            final IServer myServer = this;
             final Callable<Void> gossipRunnable = new Callable<Void>() {
-
                 @Override
                 public Void call() throws Exception {
-                    while (true) {
-                        if (myServer.getData().getOnlineServersSize() > 1) {
-
-                            // gossip protocol handshakes will all online servers
-                            serviceExecutor.requestExecuteAny(new IManagementServiceRequest() {
-                                @Override
-                                public Void perform(A1Management.Iface client) throws TException {
-                                    System.out.println("Begin gossip handshake");
-
-                                    ServerData theirData = client.exchangeServerData(myData);
-                                    if (theirData == null) {
-                                        throw new TException("Connection error");
-                                    }
-
-                                    myServer.updateData(theirData);
-
-                                    System.out.println("End gossip handshake");
-                                    return null;
-                                }
-                            });
-
-                            Thread.sleep(100);
-
-                        } else {
-                            Thread.sleep(250);
-                        }
-                    }
-                };
+                    gossipService.gossip();
+                    return null;
+                }
             };
 
             if (myDescription.getType() != ServerType.BE) {
                 servers.add(gossipRunnable);
             }
 
-            executor.invokeAll(servers);
-
+            threadedExecutor.invokeAll(servers);
 
         } catch (Exception e) {
             // TODO: Handle exception

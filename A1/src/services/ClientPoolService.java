@@ -16,7 +16,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class ClientPoolService implements Closeable {
+public class ClientPoolService implements Closeable, IClientService {
     public final IServer myServer;
 
     private HashMap<String, ServerDescription> servers;
@@ -35,6 +35,7 @@ public class ClientPoolService implements Closeable {
         return server.getHost() + "," + server.getPport() + "," + server.getMport();
     }
 
+    @Override
     public <T> T callOnce(String host, int mport, IManagementServiceRequest request) {
 
         T result = null;
@@ -59,6 +60,7 @@ public class ClientPoolService implements Closeable {
         return result;
     }
 
+    @Override
     public <T> T call(ServerDescription targetServer, IManagementServiceRequest request) {
         System.out.println("ClientPoolService call - IManagementService");
 
@@ -85,6 +87,7 @@ public class ClientPoolService implements Closeable {
         return result;
     }
 
+    @Override
     public <T> T call(ServerDescription targetServer, IPasswordServiceRequest request) {
         System.out.println("ClientPoolService call - IPasswordService");
 
@@ -181,27 +184,6 @@ public class ClientPoolService implements Closeable {
     }
 
     public static class Client<T extends TServiceClient> implements Closeable {
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Client<?> client1 = (Client<?>) o;
-
-            if (transport != null ? !transport.equals(client1.transport) : client1.transport != null) return false;
-            if (protocol != null ? !protocol.equals(client1.protocol) : client1.protocol != null) return false;
-            return !(client != null ? !client.equals(client1.client) : client1.client != null);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = transport != null ? transport.hashCode() : 0;
-            result = 31 * result + (protocol != null ? protocol.hashCode() : 0);
-            result = 31 * result + (client != null ? client.hashCode() : 0);
-            return result;
-        }
-
         public static class Factory {
 
             public static Client<A1Management.Client> createSimpleManagementClient(String host, int mport) {

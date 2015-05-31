@@ -2,16 +2,12 @@ package handlers;
 
 import servers.IServer;
 import services.ServiceExecutor;
-import services.SimpleScheduler;
+import services.RandomScheduler;
 
 public abstract class BaseHandler {
     protected final IServer server;
-    protected final ServiceExecutor executor;
 
     protected BaseHandler(IServer server) {
         this.server = server;
-
-        executor = new ServiceExecutor(server, new SimpleScheduler(server));
     }
-
 }

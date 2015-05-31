@@ -2,6 +2,7 @@ package servers;
 
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
+
 import requests.IManagementServiceRequest;
 import services.*;
 import utilities.ServerDescriptionParser;
@@ -20,6 +21,8 @@ public abstract class BaseServer implements IServer {
     private final List<String> seedHosts;
     private final List<Integer> seedPorts;
 
+    public final PerfCounters myPerfCounter;
+
     protected BaseServer(String[] args, ServerType type) {
 
         serviceExecutor = new ServiceExecutor(this);
@@ -35,7 +38,12 @@ public abstract class BaseServer implements IServer {
             seedPorts.add(Integer.parseInt(splitSeed[1]));
         }
 
+        myPerfCounter = new PerfCounters();
         myData = new ServerData(new CopyOnWriteArrayList<ServerDescription>((Arrays.asList(myDescription))), new CopyOnWriteArrayList<ServerDescription>());
+    }
+
+    public PerfCounters getMyPerfCounter() {
+        return myPerfCounter;
     }
 
     @Override
@@ -114,7 +122,6 @@ public abstract class BaseServer implements IServer {
             final int seedPort = seedPorts.get(i);
 
             if (!(myDescription.getHost().equals(seedHost) && myDescription.getMport() == seedPort)) {
-
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
@@ -136,12 +143,14 @@ public abstract class BaseServer implements IServer {
                 });
             }
         }
-
         try {
             executor.invokeAny(workers);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            System.out.println("No workers found. Worker list size: " + workers.size());
             e.printStackTrace();
         }
 
@@ -153,6 +162,7 @@ public abstract class BaseServer implements IServer {
 
         final EndpointProvider endpointProvider = new EndpointProvider();
         final GossipService gossipService = new GossipService(this);
+        final PerfCounters performanceCounter = new PerfCounters();
 
         try {
             // TODO: Do we need to run these on a new thread?

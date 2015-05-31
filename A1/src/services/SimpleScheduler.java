@@ -72,6 +72,10 @@ public class SimpleScheduler implements IScheduler {
             }
         }
 
+        if (onlineBackendNodes.isEmpty()) {
+            throw new ServiceUnavailableException("Could not find any available BE servers");
+        }
+
         Random random = new Random();
         int weightedRandom = random.nextInt(weightSum);
 

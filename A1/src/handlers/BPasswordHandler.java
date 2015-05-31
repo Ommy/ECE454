@@ -4,7 +4,11 @@ import ece454750s15a1.A1Password;
 import org.mindrot.jbcrypt.BCrypt;
 import servers.IServer;
 
-public class BPasswordHandler implements A1Password.Iface {
+public class BPasswordHandler extends BaseHandler implements A1Password.Iface {
+
+    public BPasswordHandler(IServer server) {
+        super(server);
+    }
 
     @Override
     public String hashPassword(String password, short logRounds) {

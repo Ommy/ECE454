@@ -8,7 +8,8 @@ public class BEServer extends BaseServer {
 
     public static void main(String[] args) {
         BEServer server = new BEServer(args, ServerType.BE);
-        server.run(new BPasswordHandler(), new ManagementHandler(server));
+        PerfCounters counter = server.getMyPerfCounter();
+        server.run(new BPasswordHandler(server), new ManagementHandler(server, counter));
     }
 
     public BEServer(String[] args, ServerType type) {

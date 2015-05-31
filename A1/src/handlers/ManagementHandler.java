@@ -5,12 +5,14 @@ import org.apache.thrift.TException;
 import servers.IServer;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 public class ManagementHandler extends BaseHandler implements A1Management.Iface {
 
-    public ManagementHandler(IServer server) {
+    public ManagementHandler(IServer server, PerfCounters counter) {
         super(server);
+        setPerfCounter(counter);
     }
 
     @Override
@@ -20,8 +22,10 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     @Override
     public PerfCounters getPerfCounters() throws TException {
-        System.out.println("B");
-        return null;
+        System.out.println("Getting performance counters");
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+        counter.setNumSecondUp((int) (currentTime - serverStartTime));
+        return counter;
     }
 
     @Override

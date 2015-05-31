@@ -68,9 +68,7 @@ public class ClientPoolService implements Closeable {
 
             Client<A1Management.Client> client = getManagementClient(targetServer);
 
-            if (!client.getTransport().isOpen()){
-                client.open();
-            }
+            client.open();
 
             result = request.perform(client.getClient());
 
@@ -96,6 +94,8 @@ public class ClientPoolService implements Closeable {
 
             Client<A1Password.Client> client = getPasswordClient(targetServer);
             System.out.println("Got client connection");
+
+            client.open();
 
             value = request.perform(client.getClient());
 
@@ -246,7 +246,9 @@ public class ClientPoolService implements Closeable {
         }
 
         public void open() throws TException {
-            transport.open();
+            if (!transport.isOpen()) {
+                transport.open();
+            }
         }
 
         public TTransport getTransport() {

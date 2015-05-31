@@ -2,13 +2,16 @@ package servers;
 
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
+import requests.IManagementServiceRequest;
 import services.*;
+import utilities.ServerDescriptionParser;
 
 import java.util.*;
 import java.util.concurrent.*;
 
 public abstract class BaseServer implements IServer {
 
+    private static final ServerDescriptionParser parser = new ServerDescriptionParser();
     private final ServiceExecutor serviceExecutor;
 
     private final ServerData myData;
@@ -23,33 +26,15 @@ public abstract class BaseServer implements IServer {
         seedHosts = new ArrayList<String>();
         seedPorts = new ArrayList<Integer>();
 
-        String host = "localhost";
-        int pport = 6719;
-        int mport = 4848;
-        int ncores = 1;
 
-        List<String> seedsList = new ArrayList<String>();
-        for(int i = 0; i < args.length; i++) {
-            if (args[i].equals("-host") && (i+1 < args.length)) {
-                host = args[i+1];
-            } else if (args[i].equals("-pport") && (i+1 < args.length)) {
-                pport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-mport") && (i+1 < args.length)) {
-                mport = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-ncores") && (i+1 < args.length)) {
-                ncores = Integer.parseInt(args[i+1]);
-            } else if (args[i].equals("-seeds") && (i+1 < args.length)) {
-                seedsList = Arrays.asList(args[i+1].split(","));
-            }
-        }
+        myDescription = parser.parse(args, type);
 
-        for(String seed: seedsList) {
+        for(String seed: myDescription.getSeedsList()) {
             String[] splitSeed = seed.split(":");
             seedHosts.add(splitSeed[0]);
             seedPorts.add(Integer.parseInt(splitSeed[1]));
         }
 
-        myDescription = new ServerDescription(host, pport, mport, ncores, type);
         myData = new ServerData(new CopyOnWriteArrayList<ServerDescription>((Arrays.asList(myDescription))), new CopyOnWriteArrayList<ServerDescription>());
     }
 
@@ -166,9 +151,6 @@ public abstract class BaseServer implements IServer {
     private void initializeEndpoints(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
         System.out.println("Initializing endpoints");
 
-        final A1Password.Processor pProcessor = new A1Password.Processor<A1Password.Iface>(pHandler);
-        final A1Management.Processor mProcessor = new A1Management.Processor<A1Management.Iface>(mHandler);
-
         final EndpointProvider endpointProvider = new EndpointProvider();
         final GossipService gossipService = new GossipService(this);
 
@@ -181,7 +163,7 @@ public abstract class BaseServer implements IServer {
 
                 @Override
                 public Void call() {
-                    endpointProvider.serveManagementEndpoint(myDescription, mProcessor);
+                    endpointProvider.serveManagementEndpoint(myDescription, mHandler);
                     return null;
                 }
             };
@@ -191,7 +173,7 @@ public abstract class BaseServer implements IServer {
 
                 @Override
                 public Void call() {
-                    endpointProvider.servePasswordEndpoint(myDescription, pProcessor);
+                    endpointProvider.servePasswordEndpoint(myDescription, pHandler);
                     return null;
                 }
             };

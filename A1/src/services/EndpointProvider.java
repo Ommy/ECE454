@@ -47,7 +47,7 @@ public class EndpointProvider {
         System.out.println("Stopped serving password endpoint");
     }
 
-    public void serveManagementEndpointAsync(ServerDescription description, final A1Password.AsyncIface handler) {
-
+    public void serveManagementEndpointAsync(ServerDescription description, final A1Management.AsyncIface handler) {
+        A1Management.AsyncProcessor processor = new A1Management.AsyncProcessor<A1Management.AsyncIface>(handler);
     }
 }

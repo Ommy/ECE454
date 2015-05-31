@@ -87,6 +87,7 @@ public abstract class BaseServer implements IServer {
         System.out.println("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
 
         // update my list of online servers
+
         // TODO Figure out how to handle killed and restarting nodes
         for (ServerDescription onlineServer: theirData.getOnlineServers()) {
             if (!myOnline.contains(onlineServer)) {
@@ -180,6 +181,7 @@ public abstract class BaseServer implements IServer {
         try {
             // TODO: Do we need to run these on a new thread?
             ExecutorService executor = Executors.newFixedThreadPool(3);
+            List<Callable<Void>> servers = new ArrayList<Callable<Void>>();
 
             final Callable<Void> managementRunnable = new Callable<Void>() {
 
@@ -189,6 +191,7 @@ public abstract class BaseServer implements IServer {
                     return null;
                 }
             };
+            servers.add(managementRunnable);
 
             final Callable<Void> passwordRunnable = new Callable<Void>() {
 
@@ -198,6 +201,7 @@ public abstract class BaseServer implements IServer {
                     return null;
                 }
             };
+            servers.add(passwordRunnable);
 
             final IServer myServer = this;
             final Callable<Void> gossipRunnable = new Callable<Void>() {
@@ -207,7 +211,7 @@ public abstract class BaseServer implements IServer {
                     while (true) {
                         if (myServer.getData().getOnlineServersSize() > 1) {
 
-                            // gossip protocol should handshake with any online servers
+                            // gossip protocol handshakes will all online servers
                             serviceExecutor.requestExecuteAny(new IManagementServiceRequest() {
                                 @Override
                                 public Void perform(A1Management.Iface client) throws TException {
@@ -234,7 +238,12 @@ public abstract class BaseServer implements IServer {
                 };
             };
 
-            executor.invokeAll(Arrays.asList(managementRunnable, passwordRunnable, gossipRunnable));
+            if (myDescription.getType() != ServerType.BE) {
+                servers.add(gossipRunnable);
+            }
+
+            executor.invokeAll(servers);
+
 
         } catch (Exception e) {
             // TODO: Handle exception

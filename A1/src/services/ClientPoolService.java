@@ -14,7 +14,6 @@ import servers.IServer;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.util.HashMap;
 
 public class ClientPoolService implements Closeable {
@@ -78,10 +77,11 @@ public class ClientPoolService implements Closeable {
             System.out.println("Completed re-usable client connection");
         } catch (TException te) {
             System.out.println("Failed to re-use client connection: TException");
-            te.printStackTrace();
 
             handleClientFailed(targetServer);
             myServer.onConnectionFailed(targetServer);
+
+            te.printStackTrace();
         }
 
         return result;
@@ -102,9 +102,11 @@ public class ClientPoolService implements Closeable {
             System.out.println("Completed re-usable client connection");
         } catch (TException te) {
             System.out.println("Failed to re-use client connection");
-            te.printStackTrace();
 
             handleClientFailed(targetServer);
+            myServer.onConnectionFailed(targetServer);
+
+            te.printStackTrace();
         }
 
         return value;

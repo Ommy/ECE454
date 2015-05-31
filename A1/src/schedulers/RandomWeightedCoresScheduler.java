@@ -19,48 +19,60 @@ public class RandomWeightedCoresScheduler implements IScheduler{
 
     @Override
     public ServerDescription getNextServerByType(final ServerType type) throws ServiceUnavailableException {
-        List<ServerDescription> onlineTypedNodes = new ArrayList<ServerDescription>();
-        int weightedSum = 0;
-
-        if (myServer.getData().getOnlineServersSize() == 0) {
-            throw new ServiceUnavailableException(("Could not find any available servers"));
-        }
+        List<ServerDescription> onlineNodes = new ArrayList<ServerDescription>();
+        int weightSum = 0;
 
         for (ServerDescription description : myServer.getData().getOnlineServers()) {
             if (description.getType() == type) {
-                for (int i = 0; i< description.getNcores(); ++i) {
-                    onlineTypedNodes.add(description);
-                }
-                weightedSum += description.getNcores();
+                onlineNodes.add(description);
+                weightSum += description.getNcores();
             }
         }
 
-        Random random = new Random();
-        int weightedRandom = random.nextInt(weightedSum);
+        if (onlineNodes.size() == 0) {
+            throw new ServiceUnavailableException(("Could not find any available servers"));
+        }
 
-        return onlineTypedNodes.get(weightedRandom);
+        Random random = new Random();
+        int weightedRandom = random.nextInt(weightSum);
+
+        ServerDescription selectedServer = onlineNodes.get(random.nextInt(onlineNodes.size()));
+        for (ServerDescription description : onlineNodes) {
+            weightedRandom -= description.getNcores();
+            if (weightedRandom < description.getNcores()) {
+                selectedServer = description;
+            }
+        }
+
+        return selectedServer;
     }
 
     @Override
     public ServerDescription getNextServer() throws ServiceUnavailableException {
-        List<ServerDescription> onlineTypedNodes = new ArrayList<ServerDescription>();
-        int weightedSum = 0;
+        List<ServerDescription> onlineNodes = new ArrayList<ServerDescription>();
+        int weightSum = 0;
 
-        if (myServer.getData().getOnlineServersSize() == 0) {
+        for (ServerDescription description : myServer.getData().getOnlineServers()) {
+            onlineNodes.add(description);
+            weightSum += description.getNcores();
+        }
+
+        if (onlineNodes.size() == 0) {
             throw new ServiceUnavailableException(("Could not find any available servers"));
         }
 
-        for (ServerDescription description : myServer.getData().getOnlineServers()) {
-            for (int i = 0; i< description.getNcores(); ++i) {
-                onlineTypedNodes.add(description);
+        Random random = new Random();
+        int weightedRandom = random.nextInt(weightSum);
+
+        ServerDescription selectedServer = onlineNodes.get(random.nextInt(onlineNodes.size()));
+        for (ServerDescription description : onlineNodes) {
+            weightedRandom -= description.getNcores();
+            if (weightedRandom < description.getNcores()) {
+                selectedServer = description;
             }
-            weightedSum += description.getNcores();
         }
 
-        Random random = new Random();
-        int weightedRandom = random.nextInt(weightedSum);
-
-        return onlineTypedNodes.get(weightedRandom);
+        return selectedServer;
     }
 
 }

@@ -113,7 +113,7 @@ public abstract class BaseServer implements IServer {
             final String seedHost = seedHosts.get(i);
             final int seedPort = seedPorts.get(i);
 
-                if (!(myDescription.getHost().equals(seedHost) && myDescription.getMport() == seedPort)) {
+            if (!(myDescription.getHost().equals(seedHost) && myDescription.getMport() == seedPort)) {
 
                 workers.add(new Callable<Void>() {
                     @Override

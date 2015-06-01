@@ -125,8 +125,7 @@ public abstract class BaseServer implements IServer {
                         ServerData theirData = serviceExecutor.requestExecuteToServer(seedHost, seedPort, new IManagementServiceRequest() {
                             @Override
                             public ServerData perform(A1Management.Iface client) throws TException {
-                                ServerData theirData = client.exchangeServerData(myData);
-                                return theirData;
+                                return client.exchangeServerData(getData());
                             }
                         });
 

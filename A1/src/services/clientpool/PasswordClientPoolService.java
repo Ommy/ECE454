@@ -43,9 +43,6 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         } catch (TException te) {
             // TODO: Handle errors
             LOGGER.error("callOnce failed: ", te);
-        } catch (IOException e) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", e);
         }
         return result;
     }
@@ -58,8 +55,8 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         try {
             LOGGER.debug("Re-using client connection");
 
-            initialize();
-            Client<A1Password.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getPport(), clients, passwordFactory);
+            Client<A1Password.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getPport(),
+                    clients, passwordFactory);
             client.open();
             result = request.perform(client.getClient());
             returnClient(targetServer, client, clients);
@@ -67,10 +64,9 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
             LOGGER.debug("Completed re-usable client connection");
         } catch (TException te) {
             LOGGER.error("Failed to re-use client connection: ", te);
+
             handleClientFailed(targetServer, clients);
             myServer.onConnectionFailed(targetServer);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return result;
@@ -81,6 +77,7 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
+            initialize();
 
             AsyncClient<A1Password.AsyncClient> client = AsyncClient.Factory.createSimplePasswordClient(host, port);
             client.open();
@@ -103,6 +100,7 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
+            initialize();
 
             AsyncClient<A1Password.AsyncClient> client = AsyncClient.Factory.createSimplePasswordClient(targetServer.getHost(), targetServer.getPport());
             client.open();

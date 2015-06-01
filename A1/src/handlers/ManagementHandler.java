@@ -37,7 +37,7 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
     public ServerData exchangeServerData(final ServerData theirData) throws TException {
         LOGGER.debug("Hit exchangeServerData");
 
-        server.updateData(theirData);
-        return server.getData();
+        myServer.updateData(theirData);
+        return myServer.getData();
     }
 }

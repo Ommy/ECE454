@@ -21,25 +21,21 @@ public class GossipService {
     public void gossip() throws ServiceUnavailableException {
         while (true) {
             try {
+                // at least one myServer not myself
                 if (server.getData().getOnlineServersSize() > 1) {
 
                     // gossip protocol handshakes will all online servers
-                    server.getServiceExecutor().requestExecuteAny(new IManagementServiceRequest() {
+                    ServerData theirData = server.getServiceExecutor().requestExecuteAny(new IManagementServiceRequest() {
                         @Override
-                        public Void perform(A1Management.Iface client) throws TException {
-                            LOGGER.debug("Begin gossip handshake");
-
-                            ServerData theirData = client.exchangeServerData(server.getData());
-                            if (theirData == null) {
-                                throw new TException("Connection error");
-                            }
-
-                            server.updateData(theirData);
-
-                            LOGGER.debug("End gossip handshake");
-                            return null;
+                        public ServerData perform(A1Management.Iface client) throws TException {
+                            return client.exchangeServerData(server.getData());
                         }
                     });
+
+                    if (theirData != null) {
+                        server.updateData(theirData);
+                    }
+
                     Thread.sleep(100);
                 } else {
                     Thread.sleep(250);

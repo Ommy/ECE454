@@ -43,10 +43,8 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         } catch (TException te) {
             // TODO: Handle errors
             LOGGER.error("callOnce failed: ", te);
-        } catch (IOException e) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", e);
         }
+
         return result;
     }
 
@@ -58,19 +56,18 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         try {
             LOGGER.debug("Re-using client connection");
 
-            initialize();
-            Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getMport(), clients, managementFactory);
+            Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getMport(),
+                    clients, managementFactory);
             client.open();
             result = request.perform(client.getClient());
             returnClient(targetServer, client, clients);
 
             LOGGER.debug("Completed re-usable client connection");
+
         } catch (TException te) {
             LOGGER.error("Failed to re-use client connection: ", te);
             handleClientFailed(targetServer, clients);
             myServer.onConnectionFailed(targetServer);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return result;
@@ -81,6 +78,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
+            initialize();
 
             AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(host, port);
             client.open();
@@ -103,6 +101,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
+            initialize();
 
             AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(targetServer.getHost(), targetServer.getMport());
             client.open();

@@ -83,7 +83,7 @@ public class AsyncClient<T extends TAsyncClient> implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (transport.isOpen()) {
             transport.close();
         }

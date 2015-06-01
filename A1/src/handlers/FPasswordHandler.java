@@ -1,7 +1,6 @@
 package handlers;
 
 import ece454750s15a1.A1Password;
-import ece454750s15a1.PerfCounters;
 import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
         updateRequestsReceived();
 
-        String hashedPassword =  server.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
+        String hashedPassword = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
             @Override
             public String perform(A1Password.Iface client) throws TException {
                 LOGGER.debug("Calling hashPassword on client");
@@ -40,7 +39,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
         updateRequestsReceived();
 
-        Boolean result = server.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
+        Boolean result = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
             @Override
             public Boolean perform(A1Password.Iface client) throws TException {
                 LOGGER.debug("Calling checkPassword on client");

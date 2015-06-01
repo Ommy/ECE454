@@ -75,8 +75,7 @@ public class Client<T extends TServiceClient> implements Closeable {
         }
     }
 
-    @Override
-    public void close() throws IOException {
+    public void close() {
         if (transport.isOpen()) {
             transport.close();
         }

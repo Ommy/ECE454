@@ -6,15 +6,15 @@ import java.util.Calendar;
 
 
 public abstract class BaseHandler {
-    protected final IServer server;
+    protected final IServer myServer;
     protected PerfCounters counter;
     protected final long serverStartTime;
 
     protected BaseHandler(IServer server) {
-        this.server = server;
+        this.myServer = server;
 
         serverStartTime = Calendar.getInstance().getTimeInMillis();
-        counter = this.server.getPerfCounters();
+        counter = myServer.getPerfCounters();
     }
 
     protected synchronized void updateRequestsReceived() {

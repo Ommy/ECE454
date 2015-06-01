@@ -8,11 +8,11 @@ import requests.IPasswordServiceRequest;
 
 public interface IClientService<U, UA> {
 
-    <T> T callOnce(String host, int mport, U request);
+    <T> T callOnce(String host, int port, U request);
 
     <T> T call(ServerDescription targetServer, U request);
 
-    <T> T callOnceAsync(String host, int mport, UA request);
+    <T> T callOnceAsync(String host, int port, UA request);
 
     <T> T callAsync(ServerDescription targetServer, UA request);
 }

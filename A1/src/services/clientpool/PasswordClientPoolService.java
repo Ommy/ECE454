@@ -29,12 +29,12 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
     }
 
     @Override
-    public <T> T callOnce(String host, int pport, IPasswordServiceRequest request) {
+    public <T> T callOnce(String host, int port, IPasswordServiceRequest request) {
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
 
-            Client<A1Password.Client> client = Client.Factory.createSimplePasswordClient(host, pport);
+            Client<A1Password.Client> client = Client.Factory.createSimplePasswordClient(host, port);
             client.open();
             result = request.perform(client.getClient());
             client.close();
@@ -77,12 +77,12 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
     }
 
     @Override
-    public <T> T callOnceAsync(String host, int mport, IPasswordServiceAsyncRequest request) {
+    public <T> T callOnceAsync(String host, int port, IPasswordServiceAsyncRequest request) {
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
 
-            AsyncClient<A1Password.AsyncClient> client = AsyncClient.Factory.createSimplePasswordClient(host, mport);
+            AsyncClient<A1Password.AsyncClient> client = AsyncClient.Factory.createSimplePasswordClient(host, port);
             client.open();
             result = request.perform(client.getClient());
             client.close();

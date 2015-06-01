@@ -107,6 +107,10 @@ public abstract class BaseServer implements IServer {
     private void registerWithSeedNodes() {
         LOGGER.debug("Registering with the seed nodes");
 
+        if (seedHosts.isEmpty()) {
+            throw new IllegalArgumentException("Seed lists should never be empty");
+        }
+
         ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
         final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
         final IServer server = this;

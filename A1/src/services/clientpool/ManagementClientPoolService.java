@@ -1,7 +1,6 @@
 package services.clientpool;
 
 import ece454750s15a1.A1Management;
-import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -30,12 +29,12 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
     }
 
     @Override
-    public <T> T callOnce(String host, int mport, IManagementServiceRequest request) {
+    public <T> T callOnce(String host, int port, IManagementServiceRequest request) {
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
 
-            Client<A1Management.Client> client = Client.Factory.createSimpleManagementClient(host, mport);
+            Client<A1Management.Client> client = Client.Factory.createSimpleManagementClient(host, port);
             client.open();
             result = request.perform(client.getClient());
             client.close();
@@ -78,12 +77,12 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
     }
 
     @Override
-    public <T> T callOnceAsync(String host, int mport, IManagementServiceAsyncRequest request) {
+    public <T> T callOnceAsync(String host, int port, IManagementServiceAsyncRequest request) {
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
 
-            AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(host, mport);
+            AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(host, port);
             client.open();
             result = request.perform(client.getClient());
             client.close();

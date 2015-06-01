@@ -42,7 +42,6 @@ public class EndpointProvider {
             TServerSocket transport = new TServerSocket(description.getPport());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport).processor(processor));
             server.serve();
-
         } catch (TException te) {
             // TODO: Handle exception
             LOGGER.error("Password endpoint error: ", te);
@@ -53,5 +52,21 @@ public class EndpointProvider {
 
     public void serveManagementEndpointAsync(ServerDescription description, final A1Management.AsyncIface handler) {
         A1Management.AsyncProcessor processor = new A1Management.AsyncProcessor<A1Management.AsyncIface>(handler);
+
+        try {
+            // TODO: Choose an appropriate transport and protocol
+            TServerSocket transport = new TServerSocket(description.getMport());
+            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
+                    .processor(processor)
+                    .maxWorkerThreads(Integer.MAX_VALUE)
+                    .minWorkerThreads(description.getNcores()));
+            server.serve();
+
+        } catch (TException te) {
+            // TODO: Handle exception
+            LOGGER.error("Management endpoint error: ", te);
+        }
+
+        LOGGER.debug("Stopped serving management endpoint");
     }
 }

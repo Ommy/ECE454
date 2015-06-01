@@ -15,9 +15,8 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     private static final List<String> GROUP_MEMBERS = Arrays.asList("v6lai", "faawan");
 
-    public ManagementHandler(IServer server, PerfCounters counter) {
+    public ManagementHandler(IServer server) {
         super(server);
-        setPerfCounter(counter);
     }
 
     @Override

@@ -14,17 +14,14 @@ public abstract class BaseHandler {
         this.server = server;
 
         serverStartTime = Calendar.getInstance().getTimeInMillis();
+        counter = this.server.getPerfCounters();
     }
 
-    public void setPerfCounter(PerfCounters counter) {
-        this.counter = counter;
-    }
-
-    protected void updateRequestsReceived() {
+    protected synchronized void updateRequestsReceived() {
         counter.setNumRequestsReceived(counter.getNumRequestsReceived() + 1);
     }
 
-    protected void updateRequestsCompleted() {
+    protected synchronized void updateRequestsCompleted() {
         counter.setNumRequestsCompleted(counter.getNumRequestsCompleted() + 1);
     }
 }

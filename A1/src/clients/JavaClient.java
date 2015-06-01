@@ -1,8 +1,6 @@
 package clients;
 
-import ece454750s15a1.A1Password;
-import ece454750s15a1.ServerDescription;
-import ece454750s15a1.ServerType;
+import ece454750s15a1.*;
 import org.apache.thrift.TException;
 
 import org.apache.thrift.transport.TTransport;
@@ -10,9 +8,6 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class JavaClient extends BaseClient {
 
@@ -31,6 +26,16 @@ public class JavaClient extends BaseClient {
             System.out.println("pass: " + pass);
 
             transport.close();
+
+            transport = new TSocket(description.getHost(), description.getMport());
+            transport.open();
+
+            protocol = new TBinaryProtocol(transport);
+            A1Management.Client client1 = new A1Management.Client(protocol);
+            PerfCounters counter = client1.getPerfCounters();
+            System.out.println(counter.toString());
+            transport.close();
+
         } catch (TException x) {
             x.printStackTrace();
         }

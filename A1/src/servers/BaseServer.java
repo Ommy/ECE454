@@ -45,10 +45,6 @@ public abstract class BaseServer implements IServer {
         myData = new ServerData(new CopyOnWriteArrayList<ServerDescription>((Arrays.asList(myDescription))), new CopyOnWriteArrayList<ServerDescription>());
     }
 
-    public PerfCounters getMyPerfCounter() {
-        return myPerfCounter;
-    }
-
     @Override
     public synchronized ServerDescription getDescription() {
         return new ServerDescription(myDescription);
@@ -96,6 +92,11 @@ public abstract class BaseServer implements IServer {
     public synchronized void onConnectionFailed(ServerDescription failedServer) {
         myData.getOnlineServers().remove(failedServer);
         myData.getOfflineServers().add(failedServer);
+    }
+
+    @Override
+    public synchronized PerfCounters getPerfCounters() {
+        return myPerfCounter;
     }
 
     @Override

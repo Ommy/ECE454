@@ -12,9 +12,8 @@ import requests.IPasswordServiceRequest;
 public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
     private static final Logger LOGGER = LoggerFactory.getLogger(FPasswordHandler.class.getName());
 
-    public FPasswordHandler(IServer server, PerfCounters counter) {
+    public FPasswordHandler(IServer server) {
         super(server);
-        setPerfCounter(counter);
     }
 
     @Override

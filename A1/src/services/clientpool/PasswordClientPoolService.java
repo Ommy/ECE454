@@ -29,12 +29,12 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
     }
 
     @Override
-    public <T> T callOnce(String host, int mport, IPasswordServiceRequest request) {
+    public <T> T callOnce(String host, int pport, IPasswordServiceRequest request) {
         T result = null;
         try {
             LOGGER.debug("Calling with one time client connection");
 
-            Client<A1Password.Client> client = Client.Factory.createSimplePasswordClient(host, mport);
+            Client<A1Password.Client> client = Client.Factory.createSimplePasswordClient(host, pport);
             client.open();
             result = request.perform(client.getClient());
             client.close();

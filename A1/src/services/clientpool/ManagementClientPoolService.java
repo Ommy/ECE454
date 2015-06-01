@@ -60,7 +60,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
             LOGGER.debug("Re-using client connection");
 
             initialize();
-            Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getPport(), clients, managementFactory);
+            Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getMport(), clients, managementFactory);
             client.open();
             result = request.perform(client.getClient());
             returnClient(targetServer, client, clients);
@@ -105,7 +105,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         try {
             LOGGER.debug("Calling with one time client connection");
 
-            AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(targetServer.getHost(), targetServer.getPport());
+            AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(targetServer.getHost(), targetServer.getMport());
             client.open();
             result = request.perform(client.getClient());
             client.close();

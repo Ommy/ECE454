@@ -136,7 +136,9 @@ public abstract class BaseServer implements IServer {
             }
         }
         try {
-            executor.invokeAny(workers);
+            if (!workers.isEmpty()) {
+                executor.invokeAny(workers);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -153,7 +155,6 @@ public abstract class BaseServer implements IServer {
 
         final EndpointProvider endpointProvider = new EndpointProvider();
         final GossipService gossipService = new GossipService(this);
-        final PerfCounters performanceCounter = new PerfCounters();
 
         try {
             // TODO: Do we need to run these on a new thread?

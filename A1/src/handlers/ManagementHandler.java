@@ -2,6 +2,8 @@ package handlers;
 
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import servers.IServer;
 
 import java.util.Arrays;
@@ -9,6 +11,9 @@ import java.util.Calendar;
 import java.util.List;
 
 public class ManagementHandler extends BaseHandler implements A1Management.Iface {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ManagementHandler.class.getName());
+
+    private static final List<String> GROUP_MEMBERS = Arrays.asList("v6lai", "faawan");
 
     public ManagementHandler(IServer server, PerfCounters counter) {
         super(server);
@@ -17,12 +22,13 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     @Override
     public List<String> getGroupMembers() throws TException {
-        return Arrays.asList("v6lai", "faawan");
+        return GROUP_MEMBERS;
     }
 
     @Override
     public PerfCounters getPerfCounters() throws TException {
-        System.out.println("Getting performance counters");
+        LOGGER.debug("Getting performance counters");
+
         long currentTime = Calendar.getInstance().getTimeInMillis();
         counter.setNumSecondUp((int) (currentTime - serverStartTime));
         return counter;
@@ -30,7 +36,8 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     @Override
     public ServerData exchangeServerData(final ServerData theirData) throws TException {
-        System.out.println("Hit exchangeServerData");
+        LOGGER.debug("Hit exchangeServerData");
+
         server.updateData(theirData);
         return server.getData();
     }

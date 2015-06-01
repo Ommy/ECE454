@@ -3,6 +3,8 @@ package servers;
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import requests.IManagementServiceRequest;
 import services.*;
 import utilities.ServerDescriptionParser;
@@ -11,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public abstract class BaseServer implements IServer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseServer.class.getName());
 
     private static final ServerDescriptionParser parser = new ServerDescriptionParser();
     private final ServiceExecutor serviceExecutor;
@@ -47,17 +50,6 @@ public abstract class BaseServer implements IServer {
     }
 
     @Override
-    public synchronized boolean isSeedNode(String host, int mport) {
-        boolean isSeed = false;
-        for (int i = 0; i < seedHosts.size(); ++i) {
-            if (seedHosts.get(i).equals(host) && seedPorts.get(i).equals(mport)) {
-                isSeed = true;
-            }
-        }
-        return isSeed;
-    }
-
-    @Override
     public synchronized ServerDescription getDescription() {
         return new ServerDescription(myDescription);
     }
@@ -72,9 +64,9 @@ public abstract class BaseServer implements IServer {
         List<ServerDescription> myOnline = myData.getOnlineServers();
         List<ServerDescription> myOffline = myData.getOfflineServers();
 
-        System.out.println("Updating data for " + myDescription.toString());
-        System.out.println("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
-        System.out.println("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+        LOGGER.debug("Updating data for " + myDescription.toString());
+        LOGGER.debug("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
+        LOGGER.debug("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
 
         // update my list of online servers
 
@@ -95,9 +87,9 @@ public abstract class BaseServer implements IServer {
         // remove servers that are offline
         myOnline.removeAll(myOffline);
 
-        System.out.println("Updated data for: " + myDescription.toString());
-        System.out.println("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
-        System.out.println("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+        LOGGER.debug("Updated data for: " + myDescription.toString());
+        LOGGER.debug("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
+        LOGGER.debug("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
     }
 
     @Override
@@ -112,7 +104,7 @@ public abstract class BaseServer implements IServer {
     }
 
     private void registerWithSeedNodes() {
-        System.out.println("Registering with the seed nodes");
+        LOGGER.debug("Registering with the seed nodes");
 
         ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
         final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
@@ -137,7 +129,7 @@ public abstract class BaseServer implements IServer {
                             server.updateData(theirData);
                         }
 
-                        System.out.println("Completed first registration handshake with seed");
+                        LOGGER.debug("Completed first registration handshake with seed");
                         return null;
                     }
                 });
@@ -150,15 +142,14 @@ public abstract class BaseServer implements IServer {
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            System.out.println("No workers found. Worker list size: " + workers.size());
-            e.printStackTrace();
+            LOGGER.error("No workers found. Worker list size: " + workers.size(), e);
         }
 
-        System.out.println("Completed registering with any endpoint");
+        LOGGER.debug("Completed registering with any endpoint");
     }
 
     private void initializeEndpoints(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
-        System.out.println("Initializing endpoints");
+        LOGGER.debug("Initializing endpoints");
 
         final EndpointProvider endpointProvider = new EndpointProvider();
         final GossipService gossipService = new GossipService(this);
@@ -205,11 +196,10 @@ public abstract class BaseServer implements IServer {
 
         } catch (Exception e) {
             // TODO: Handle exception
-            System.out.println("Continuous running endpoints failed");
-            e.printStackTrace();
+            LOGGER.error("Continuous running endpoints failed: ", e);
         }
 
-        System.out.println("Unexpected quit running endpoints failed");
+        LOGGER.debug("Unexpected quit running endpoints failed");
     }
 
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {

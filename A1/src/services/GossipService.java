@@ -4,10 +4,13 @@ import ece454750s15a1.A1Management;
 import ece454750s15a1.ServerData;
 import ece454750s15a1.ServiceUnavailableException;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import requests.IManagementServiceRequest;
 import servers.IServer;
 
 public class GossipService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GossipService.class.getName());
 
     private IServer server;
 
@@ -24,7 +27,7 @@ public class GossipService {
                     server.getServiceExecutor().requestExecuteAny(new IManagementServiceRequest() {
                         @Override
                         public Void perform(A1Management.Iface client) throws TException {
-                            System.out.println("Begin gossip handshake");
+                            LOGGER.debug("Begin gossip handshake");
 
                             ServerData theirData = client.exchangeServerData(server.getData());
                             if (theirData == null) {
@@ -33,7 +36,7 @@ public class GossipService {
 
                             server.updateData(theirData);
 
-                            System.out.println("End gossip handshake");
+                            LOGGER.debug("End gossip handshake");
                             return null;
                         }
                     });

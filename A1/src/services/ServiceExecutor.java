@@ -3,37 +3,48 @@ package services;
 import ece454750s15a1.ServerDescription;
 import ece454750s15a1.ServerType;
 import ece454750s15a1.ServiceUnavailableException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import requests.IManagementServiceAsyncRequest;
 import requests.IManagementServiceRequest;
+import requests.IPasswordServiceAsyncRequest;
 import requests.IPasswordServiceRequest;
 import schedulers.IScheduler;
 import schedulers.RandomScheduler;
 import schedulers.RandomWeightedCoresScheduler;
 import servers.IServer;
+import services.clientpool.IClientService;
+import services.clientpool.ManagementClientPoolService;
+import services.clientpool.PasswordClientPoolService;
 
 public class ServiceExecutor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceExecutor.class.getName());
+
     private final IScheduler randomScheduler;
     private final IScheduler loadBalancedScheduler;
-    private final IClientService clientService;
+    private final IClientService<IPasswordServiceRequest, IPasswordServiceAsyncRequest> passwordClientService;
+    private final IClientService<IManagementServiceRequest, IManagementServiceAsyncRequest> managementClientService;
 
     public ServiceExecutor(IServer server) {
         this.randomScheduler = new RandomScheduler(server);
         this.loadBalancedScheduler = new RandomWeightedCoresScheduler(server);
 
-        clientService = new ClientPoolService(server);
+        managementClientService = new ManagementClientPoolService(server);
+        passwordClientService = new PasswordClientPoolService(server);
     }
 
     // Only use for registering with seed nodes when you have no ServerDescription data
     public <T> T requestExecuteToServer(String host, int mport, IManagementServiceRequest request) {
-        return clientService.callOnce(host, mport, request);
+        return managementClientService.callOnce(host, mport, request);
     }
 
     // Implementations for Management and Password requests
     private <T> T requestExecuteToServer(ServerDescription server, IManagementServiceRequest request) {
-        return clientService.call(server, request);
+        return managementClientService.call(server, request);
     }
 
     private <T> T requestExecuteToServer(ServerDescription server, IPasswordServiceRequest request) {
-        return clientService.call(server, request);
+        return passwordClientService.call(server, request);
     }
 
     public <T> T requestExecute(ServerType type, IManagementServiceRequest request) throws ServiceUnavailableException {

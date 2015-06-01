@@ -6,8 +6,6 @@ import services.ServiceExecutor;
 
 public interface IServer {
 
-    boolean isSeedNode(String host, int mport);
-
     ServerDescription getDescription();
 
     ServerData getData();

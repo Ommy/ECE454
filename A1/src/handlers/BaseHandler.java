@@ -19,4 +19,12 @@ public abstract class BaseHandler {
     public void setPerfCounter(PerfCounters counter) {
         this.counter = counter;
     }
+
+    protected void updateRequestsReceived() {
+        counter.setNumRequestsReceived(counter.getNumRequestsReceived() + 1);
+    }
+
+    protected void updateRequestsCompleted() {
+        counter.setNumRequestsCompleted(counter.getNumRequestsCompleted() + 1);
+    }
 }

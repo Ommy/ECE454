@@ -7,29 +7,35 @@ import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EndpointProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointProvider.class.getName());
+
     public void serveManagementEndpoint(ServerDescription description, final A1Management.Iface handler) {
-        System.out.println("Serving management endpoint");
+        LOGGER.debug("Serving management endpoint");
 
         A1Management.Processor processor = new A1Management.Processor<A1Management.Iface>(handler);
         try {
             // TODO: Choose an appropriate transport and protocol
             TServerSocket transport = new TServerSocket(description.getMport());
-            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport).processor(processor).maxWorkerThreads(10).minWorkerThreads(2));
+            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
+                    .processor(processor)
+                    .maxWorkerThreads(Integer.MAX_VALUE)
+                    .minWorkerThreads(description.getNcores()));
             server.serve();
 
         } catch (TException te) {
             // TODO: Handle exception
-            System.out.println("Management endpoint error");
-            te.printStackTrace();
+            LOGGER.error("Management endpoint error: ", te);
         }
 
-        System.out.println("Stopped serving management endpoint");
+        LOGGER.debug("Stopped serving management endpoint");
     }
 
     public void servePasswordEndpoint(ServerDescription description, final A1Password.Iface handler) {
-        System.out.println("Serving password endpoint");
+        LOGGER.debug("Serving password endpoint");
 
         A1Password.Processor processor = new A1Password.Processor<A1Password.Iface>(handler);
         try {
@@ -39,12 +45,10 @@ public class EndpointProvider {
 
         } catch (TException te) {
             // TODO: Handle exception
-            System.out.println("Password endpoint error");
-
-            te.printStackTrace();
+            LOGGER.error("Password endpoint error: ", te);
         }
 
-        System.out.println("Stopped serving password endpoint");
+        LOGGER.debug("Stopped serving password endpoint");
     }
 
     public void serveManagementEndpointAsync(ServerDescription description, final A1Management.AsyncIface handler) {

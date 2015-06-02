@@ -28,10 +28,11 @@ public class ManagementClient extends BaseClient {
 
             TProtocol protocol = new TBinaryProtocol(transport);
             A1Management.Client client = new A1Management.Client(protocol);
-            System.out.print(client.getGroupMembers().toString());
-            System.out.print(client.getPerfCounters().toString());
-            System.out.print(client.getServerData().toString());
-            System.out.print(client.getServerDescription().toString());
+
+            System.out.println(client.getGroupMembers().toString());
+            System.out.println(client.getPerfCounters().toString());
+            System.out.println(client.getServerData().toString());
+            System.out.println(client.getServerDescription().toString());
             transport.close();
 
         } catch (TTransportException e) {

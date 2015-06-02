@@ -18,10 +18,11 @@ public class PasswordClient extends BaseClient {
 
         try {
             TTransport transport = new TSocket(description.getHost(), description.getPport());
-            transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);
             A1Password.Client client = new A1Password.Client(protocol);
+
+            transport.open();
 
             String hash1 = client.hashPassword("helloworld1", (short) 10);
             String hash2 = client.hashPassword("helloworld2", (short)10);
@@ -30,31 +31,31 @@ public class PasswordClient extends BaseClient {
             String hash5 = client.hashPassword("helloworld5", (short)10);
             String hash6 = client.hashPassword("helloworld6", (short)10);
             String hash7 = client.hashPassword("helloworld7", (short)10);
-            String hash8 = client.hashPassword("helloworld9", (short)10);
+            String hash8 = client.hashPassword("helloworld8", (short)10);
             String hash9 = client.hashPassword("helloworld9", (short)10);
             String hash10 = client.hashPassword("helloworld10", (short)10);
 
-            System.out.print(hash1);
-            System.out.print(hash2);
-            System.out.print(hash3);
-            System.out.print(hash4);
-            System.out.print(hash5);
-            System.out.print(hash6);
-            System.out.print(hash7);
-            System.out.print(hash8);
-            System.out.print(hash9);
-            System.out.print(hash10);
+            System.out.println(hash1);
+            System.out.println(hash2);
+            System.out.println(hash3);
+            System.out.println(hash4);
+            System.out.println(hash5);
+            System.out.println(hash6);
+            System.out.println(hash7);
+            System.out.println(hash8);
+            System.out.println(hash9);
+            System.out.println(hash10);
 
-            System.out.print(client.checkPassword(hash1, "helloworld1"));
-            System.out.print(client.checkPassword(hash1, "helloworld2"));
-            System.out.print(client.checkPassword(hash1, "helloworld3"));
-            System.out.print(client.checkPassword(hash1, "helloworld4"));
-            System.out.print(client.checkPassword(hash1, "helloworld5"));
-            System.out.print(client.checkPassword(hash1, "helloworld6"));
-            System.out.print(client.checkPassword(hash1, "helloworld7"));
-            System.out.print(client.checkPassword(hash1, "helloworld8"));
-            System.out.print(client.checkPassword(hash1, "helloworld9"));
-            System.out.print(client.checkPassword(hash1, "helloworld10"));
+            System.out.println(client.checkPassword("helloworld1", hash1));
+            System.out.println(client.checkPassword("helloworld2", hash2));
+            System.out.println(client.checkPassword("helloworld3", hash3));
+            System.out.println(client.checkPassword("helloworld4", hash4));
+            System.out.println(client.checkPassword("helloworld5", hash5));
+            System.out.println(client.checkPassword("helloworld6", hash6));
+            System.out.println(client.checkPassword("helloworld7", hash7));
+            System.out.println(client.checkPassword("helloworld8", hash8));
+            System.out.println(client.checkPassword("helloworld9", hash9));
+            System.out.println(client.checkPassword("helloworld10", hash10));
 
             transport.close();
 

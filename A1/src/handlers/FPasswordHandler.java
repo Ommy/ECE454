@@ -21,13 +21,16 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
         updateRequestsReceived();
 
-        String hashedPassword = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
-            @Override
-            public String perform(A1Password.Iface client) throws TException {
-                LOGGER.debug("Calling hashPassword on client");
-                return client.hashPassword(password, logRounds);
-            }
-        });
+        String hashedPassword = null;
+        while (hashedPassword == null) {
+            hashedPassword = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
+                @Override
+                public String perform(A1Password.Iface client) throws TException {
+                    LOGGER.debug("Calling hashPassword on client");
+                    return client.hashPassword(password, logRounds);
+                }
+            });
+        }
 
         updateRequestsCompleted();
         return hashedPassword;
@@ -39,13 +42,16 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
         updateRequestsReceived();
 
-        Boolean result = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
-            @Override
-            public Boolean perform(A1Password.Iface client) throws TException {
-                LOGGER.debug("Calling checkPassword on client");
-                return client.checkPassword(password, hash);
-            }
-        });
+        Boolean result = null;
+        while (result == null) {
+            result = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
+                @Override
+                public Boolean perform(A1Password.Iface client) throws TException {
+                    LOGGER.debug("Calling checkPassword on client");
+                    return client.checkPassword(password, hash);
+                }
+            });
+        }
 
         updateRequestsCompleted();
         return result;

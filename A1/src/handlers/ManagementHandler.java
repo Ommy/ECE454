@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import servers.IServer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -21,7 +22,7 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     @Override
     public List<String> getGroupMembers() throws TException {
-        return GROUP_MEMBERS;
+        return new ArrayList<String>(GROUP_MEMBERS);
     }
 
     @Override

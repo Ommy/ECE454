@@ -15,6 +15,8 @@ public class BPasswordHandler extends BaseHandler implements A1Password.Iface {
 
     @Override
     public String hashPassword(String password, short logRounds) {
+        LOGGER.debug("Hash password");
+
         updateRequestsReceived();
         LOGGER.info("RECEIVED REQUEST");
         final String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt((int)logRounds));
@@ -24,6 +26,8 @@ public class BPasswordHandler extends BaseHandler implements A1Password.Iface {
 
     @Override
     public boolean checkPassword(String password, String hash) {
+        LOGGER.debug("Check password");
+
         updateRequestsReceived();
         boolean result = BCrypt.checkpw(password, hash);
         updateRequestsCompleted();

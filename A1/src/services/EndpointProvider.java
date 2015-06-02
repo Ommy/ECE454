@@ -53,6 +53,7 @@ public class EndpointProvider {
         LOGGER.debug("Stopped serving password endpoint");
     }
 
+
     public void serveManagementEndpointAsync(ServerDescription description, final A1Management.AsyncIface handler) {
         A1Management.AsyncProcessor processor = new A1Management.AsyncProcessor<A1Management.AsyncIface>(handler);
     }

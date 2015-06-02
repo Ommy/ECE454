@@ -18,7 +18,6 @@ import java.util.List;
 
 public class AsyncClient extends BaseClient {
 
-
     static volatile boolean finish = false;
     public static void main(String [] args) {
 

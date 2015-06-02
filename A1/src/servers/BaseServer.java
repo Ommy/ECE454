@@ -58,7 +58,6 @@ public abstract class BaseServer implements IServer {
     @Override
     public synchronized void updateData(ServerData theirData) {
         List<ServerDescription> myOnline = myData.getOnlineServers();
-        List<ServerDescription> myOffline = myData.getOfflineServers();
 
         // update my list of online servers
         // TODO Figure out how to handle killed and restarting nodes
@@ -68,19 +67,13 @@ public abstract class BaseServer implements IServer {
             }
         }
 
-        // i should never be dead
-        if (myOffline.contains(myDescription)) {
-            myOffline.remove(myDescription);
-        }
-
-//        LOGGER.debug("Updated data for: " + myDescription.toString());
-//        LOGGER.info("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
-//        LOGGER.info("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+        LOGGER.debug("Updated data for: " + myDescription.toString());
+        LOGGER.debug("Online servers: " + myData.getOnlineServers());
     }
 
     @Override
     public synchronized void removeDownedService(ServerDescription server) {
-//        LOGGER.info("Removing downed service " + server.toString());
+        LOGGER.debug("Removing downed service " + server.toString());
 
         List<ServerDescription> myOnline = myData.getOnlineServers();
         if (myOnline.contains(server)) {
@@ -89,7 +82,7 @@ public abstract class BaseServer implements IServer {
 
         myData.setOnlineServers(myOnline);
 
-//        LOGGER.info("Successfully removed " + server.toString());
+        LOGGER.debug("Successfully removed " + server.toString());
     }
 
     @Override

@@ -45,7 +45,7 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     @Override
     public void serviceEndpointDown(ServerDescription server) throws TException {
-        LOGGER.info("Server " + server.toString() + " is down");
+        LOGGER.debug("Server " + server.toString() + " is down");
         myServer.removeDownedService(server);
     }
 

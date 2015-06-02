@@ -63,7 +63,6 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
             returnClient(targetServer, client, clients);
 
             LOGGER.debug("Completed re-usable client connection");
-
         } catch (TException te) {
             LOGGER.error("Failed to re-use client connection: ", te);
             handleClientFailed(targetServer, clients);
@@ -122,7 +121,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         for (ConcurrentLinkedQueue<Client<A1Management.Client>> queue: clients.values()) {
             for (Client<A1Management.Client> client: queue) {
                 client.close();

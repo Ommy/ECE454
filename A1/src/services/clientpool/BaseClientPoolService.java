@@ -46,7 +46,7 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         return server.getHost() + "," + server.getPport() + "," + server.getMport();
     }
 
-    protected <T extends TServiceClient> Client<T> takeClient(ServerDescription server, String host, int port, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map, TServiceClientFactory<T> factory) {
+    protected synchronized <T extends TServiceClient> Client<T> takeClient(ServerDescription server, String host, int port, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map, TServiceClientFactory<T> factory) {
         Client<T> client = null;
         if (!map.containsKey(hash(server))) {
             client = Client.Factory.createSimpleClient(host, port, factory);
@@ -59,7 +59,7 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         return client;
     }
 
-    protected <T extends TServiceClient> void returnClient(ServerDescription server, Client<T> client, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map) {
+    protected synchronized  <T extends TServiceClient> void returnClient(ServerDescription server, Client<T> client, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map) {
         if (!map.containsKey(hash(server))) {
             map.put(hash(server), new ConcurrentLinkedQueue<Client<T>>());
         }
@@ -67,7 +67,7 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         map.get(hash(server)).offer(client);
     }
 
-    protected <T extends TAsyncClient> AsyncClient<T> takeAsyncClient(ServerDescription server, String host, int port, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map, TAsyncClientFactory<T> factory) throws IOException {
+    protected synchronized <T extends TAsyncClient> AsyncClient<T> takeAsyncClient(ServerDescription server, String host, int port, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map, TAsyncClientFactory<T> factory) throws IOException {
         AsyncClient<T> client = null;
         if (!map.containsKey(hash(server))) {
             client = AsyncClient.Factory.createSimpleClient(host, port, factory);
@@ -80,7 +80,7 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         return client;
     }
 
-    protected <T extends TAsyncClient> void returnAsyncClient(ServerDescription server, AsyncClient<T> client, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map) {
+    protected synchronized <T extends TAsyncClient> void returnAsyncClient(ServerDescription server, AsyncClient<T> client, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map) {
         if (!map.containsKey(hash(server))) {
             map.put(hash(server), new ConcurrentLinkedQueue<AsyncClient<T>>());
         }
@@ -88,17 +88,19 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         map.get(hash(server)).offer(client);
     }
 
-    protected <T extends TServiceClient> void handleClientFailed(ServerDescription server, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map) {
+    protected synchronized <T extends TServiceClient> void handleClientFailed(ServerDescription server, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map) {
         LOGGER.debug("Removing client from client pool");
 
         if (map.containsKey(hash(server))) {
+            map.remove(hash(server));
         }
     }
 
-    protected <T extends TAsyncClient> void handleAsyncClientFailed(ServerDescription server, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map) {
+    protected synchronized <T extends TAsyncClient> void handleAsyncClientFailed(ServerDescription server, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map) {
         LOGGER.debug("Removing client from client pool");
 
         if (map.containsKey(hash(server))) {
+            map.remove(hash(server));
         }
     }
 }

@@ -84,8 +84,8 @@ public abstract class BaseServer implements IServer {
         myOnline.removeAll(myOffline);
 
         LOGGER.debug("Updated data for: " + myDescription.toString());
-        LOGGER.debug("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
-        LOGGER.debug("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+        LOGGER.info("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
+        LOGGER.info("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
     }
 
     @Override

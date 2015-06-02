@@ -121,7 +121,7 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         for (ConcurrentLinkedQueue<Client<A1Password.Client>> queue: clients.values()) {
             for (Client<A1Password.Client> client: queue) {
                 client.close();

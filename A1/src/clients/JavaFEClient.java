@@ -9,10 +9,9 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 
 
-public class JavaClient extends BaseClient {
+public class JavaFEClient extends BaseClient {
 
     public static void main(String[] args) {
-
         final ServerDescription description = parser.parse(args, ServerType.FE);
 
         try {

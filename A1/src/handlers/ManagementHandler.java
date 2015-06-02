@@ -27,7 +27,6 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
     @Override
     public PerfCounters getPerfCounters() throws TException {
         LOGGER.debug("Getting performance counters");
-
         long currentTime = Calendar.getInstance().getTimeInMillis();
         counter.setNumSecondUp((int) (currentTime - serverStartTime));
         return counter;
@@ -40,4 +39,22 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
         myServer.updateData(theirData);
         return myServer.getData();
     }
+
+    @Override
+    public void serviceEndpointDown(ServerDescription server) throws TException {
+        LOGGER.info("Server " + server.toString() + " is down");
+        myServer.removeDownedService(server);
+    }
+
+    @Override
+    public ServerData getServerData() throws TException {
+        return myServer.getData();
+    }
+
+    @Override
+    public ServerDescription getServerDescription() throws TException {
+        return myServer.getDescription();
+    }
+
+
 }

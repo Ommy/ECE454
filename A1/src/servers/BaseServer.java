@@ -89,9 +89,52 @@ public abstract class BaseServer implements IServer {
     }
 
     @Override
-    public synchronized void onConnectionFailed(ServerDescription failedServer) {
+    public synchronized void removeDownedService(ServerDescription server) {
+        LOGGER.info("Starting broadcast of downed service " + server.toString());
+
+        List<ServerDescription> myOnline = myData.getOnlineServers();
+        List<ServerDescription> myOffline = myData.getOfflineServers();
+        myOnline.remove(server);
+        myOffline.add(server);
+
+        myData.setOnlineServers(myOnline);
+        myData.setOfflineServers(myOffline);
+
+        LOGGER.info("Successfully removed " + server.toString());
+    }
+
+    @Override
+    public synchronized void onConnectionFailed(final ServerDescription failedServer) {
         myData.getOnlineServers().remove(failedServer);
         myData.getOfflineServers().add(failedServer);
+
+        // Send this to all other servers
+        List<ServerDescription> myOnline = myData.getOnlineServers();
+        ExecutorService executor = Executors.newFixedThreadPool(myOnline.size());
+        final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
+        for (final ServerDescription online : myOnline) {
+            workers.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    serviceExecutor.requestExecuteToServer(online.getHost(), online.getMport(), new IManagementServiceRequest() {
+                        @Override
+                        public Void perform(A1Management.Iface client) throws TException {
+                            client.serviceEndpointDown(failedServer);
+                            return null;
+                        }
+                    });
+                    return null;
+                }
+            });
+        }
+
+        try {
+            if (!workers.isEmpty()) {
+                executor.invokeAll(workers);
+            }
+        } catch (InterruptedException ie) {
+            LOGGER.error("Executor threw an exception", ie);
+        }
     }
 
     @Override

@@ -34,4 +34,10 @@ service A1Management {
 
     # custom services
     ServerData exchangeServerData(1:ServerData data);
+
+    void serviceEndpointDown(1:ServerDescription server);
+
+    ServerData getServerData();
+
+    ServerDescription getServerDescription();
 }

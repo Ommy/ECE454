@@ -18,4 +18,6 @@ public interface IServer {
     void updateData(ServerData data);
 
     void onConnectionFailed(ServerDescription failedServer);
+
+    void removeDownedService(ServerDescription server);
 }

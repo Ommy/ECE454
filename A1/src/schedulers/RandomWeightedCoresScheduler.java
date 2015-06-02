@@ -3,6 +3,8 @@ package schedulers;
 import ece454750s15a1.ServerDescription;
 import ece454750s15a1.ServerType;
 import ece454750s15a1.ServiceUnavailableException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import servers.IServer;
 
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.Random;
 public class RandomWeightedCoresScheduler implements IScheduler{
 
     private final IServer myServer;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RandomWeightedCoresScheduler.class.toString());
 
     public RandomWeightedCoresScheduler(IServer server) {
         myServer = server;
@@ -38,10 +41,11 @@ public class RandomWeightedCoresScheduler implements IScheduler{
 
         ServerDescription selectedServer = onlineNodes.get(random.nextInt(onlineNodes.size()));
         for (ServerDescription description : onlineNodes) {
-            weightedRandom -= description.getNcores();
             if (weightedRandom < description.getNcores()) {
                 selectedServer = description;
+                break;
             }
+            weightedRandom -= description.getNcores();
         }
 
         return selectedServer;
@@ -66,10 +70,11 @@ public class RandomWeightedCoresScheduler implements IScheduler{
 
         ServerDescription selectedServer = onlineNodes.get(random.nextInt(onlineNodes.size()));
         for (ServerDescription description : onlineNodes) {
-            weightedRandom -= description.getNcores();
             if (weightedRandom < description.getNcores()) {
                 selectedServer = description;
+                break;
             }
+            weightedRandom -= description.getNcores();
         }
 
         return selectedServer;

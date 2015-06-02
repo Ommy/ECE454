@@ -42,6 +42,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
             LOGGER.debug("Completed one time client connection");
         } catch (TException te) {
             // TODO: Handle errors
+            LOGGER.error("callOnce failed for host " + host + " and port " + port);
             LOGGER.error("callOnce failed: ", te);
         }
 

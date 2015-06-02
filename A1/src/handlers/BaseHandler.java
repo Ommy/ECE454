@@ -18,10 +18,12 @@ public abstract class BaseHandler {
     }
 
     protected synchronized void updateRequestsReceived() {
-        counter.setNumRequestsReceived(counter.getNumRequestsReceived() + 1);
+        int received = counter.getNumRequestsReceived();
+        counter.setNumRequestsReceived(received + 1);
     }
 
     protected synchronized void updateRequestsCompleted() {
-        counter.setNumRequestsCompleted(counter.getNumRequestsCompleted() + 1);
+        int completed = counter.getNumRequestsCompleted();
+        counter.setNumRequestsCompleted(completed + 1);
     }
 }

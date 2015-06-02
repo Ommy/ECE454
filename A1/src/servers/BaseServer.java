@@ -73,14 +73,14 @@ public abstract class BaseServer implements IServer {
             myOffline.remove(myDescription);
         }
 
-        LOGGER.debug("Updated data for: " + myDescription.toString());
-        LOGGER.info("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
-        LOGGER.info("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
+//        LOGGER.debug("Updated data for: " + myDescription.toString());
+//        LOGGER.info("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
+//        LOGGER.info("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
     }
 
     @Override
     public synchronized void removeDownedService(ServerDescription server) {
-        LOGGER.info("Removing downed service " + server.toString());
+//        LOGGER.info("Removing downed service " + server.toString());
 
         List<ServerDescription> myOnline = myData.getOnlineServers();
         if (myOnline.contains(server)) {
@@ -89,7 +89,7 @@ public abstract class BaseServer implements IServer {
 
         myData.setOnlineServers(myOnline);
 
-        LOGGER.info("Successfully removed " + server.toString());
+//        LOGGER.info("Successfully removed " + server.toString());
     }
 
     @Override

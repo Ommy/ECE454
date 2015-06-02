@@ -2,6 +2,7 @@ package services;
 
 import ece454750s15a1.A1Management;
 import ece454750s15a1.ServerData;
+import ece454750s15a1.ServerType;
 import ece454750s15a1.ServiceUnavailableException;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ public class GossipService {
                 if (server.getData().getOnlineServersSize() > 1) {
 
                     // gossip protocol handshakes will all online servers
-                    ServerData theirData = server.getServiceExecutor().requestExecuteAny(new IManagementServiceRequest() {
+                    ServerData theirData = server.getServiceExecutor().requestExecuteAnyByType(ServerType.FE, new IManagementServiceRequest()
+                    {
                         @Override
                         public ServerData perform(A1Management.Iface client) throws TException {
                             return client.exchangeServerData(server.getData());

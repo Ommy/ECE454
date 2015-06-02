@@ -61,5 +61,10 @@ public class ServiceExecutor {
         ServerDescription server = randomScheduler.getNextServer();
         return requestExecuteToServer(server, request);
     }
+
+    public <T> T requestExecuteAnyByType(ServerType type, IManagementServiceRequest request) throws ServiceUnavailableException {
+        ServerDescription server = randomScheduler.getNextServerByType(type);
+        return requestExecuteToServer(server, request);
+    }
 }
 

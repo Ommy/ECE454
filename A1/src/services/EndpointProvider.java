@@ -40,7 +40,10 @@ public class EndpointProvider {
         A1Password.Processor processor = new A1Password.Processor<A1Password.Iface>(handler);
         try {
             TServerSocket transport = new TServerSocket(description.getPport());
-            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport).processor(processor));
+            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
+                    .processor(processor)
+                    .maxWorkerThreads(Integer.MAX_VALUE)
+                    .minWorkerThreads(description.getNcores()));
             server.serve();
         } catch (TException te) {
             // TODO: Handle exception

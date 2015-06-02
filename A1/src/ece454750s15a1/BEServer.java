@@ -1,8 +1,8 @@
-package servers;
+package ece454750s15a1;
 
-import ece454750s15a1.*;
 import handlers.BPasswordHandler;
 import handlers.ManagementHandler;
+import servers.BaseServer;
 
 public class BEServer extends BaseServer {
 

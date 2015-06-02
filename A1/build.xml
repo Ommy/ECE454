@@ -68,7 +68,7 @@
 
   <target name="run-fe" depends="dist">
     <parallel>
-      <java classname="servers.FEServer" timeout="10000" classpathref="run.classpath" failonerror="true" />
+      <java classname="ece454750s15a1.FEServer" timeout="10000" classpathref="run.classpath" failonerror="true" />
     </parallel>
   </target>
 

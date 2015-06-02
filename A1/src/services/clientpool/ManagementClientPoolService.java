@@ -50,14 +50,14 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
 
     @Override
     public <T> T call(ServerDescription targetServer, IManagementServiceRequest request) {
-        LOGGER.debug("ClientPoolService call - IPasswordService");
+        LOGGER.debug("ClientPoolService call - IManagementService");
 
         T result = null;
         try {
             LOGGER.debug("Re-using client connection");
 
             Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getMport(),
-                    clients, managementFactory);
+                                                            clients, managementFactory);
             client.open();
             result = request.perform(client.getClient());
             returnClient(targetServer, client, clients);
@@ -127,6 +127,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
                 client.close();
             }
         }
+
         for (ConcurrentLinkedQueue<AsyncClient<A1Management.AsyncClient>> queue: asyncClients.values()) {
             for (AsyncClient<A1Management.AsyncClient> client: queue) {
                 client.close();

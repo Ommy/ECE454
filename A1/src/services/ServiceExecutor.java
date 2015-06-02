@@ -39,7 +39,7 @@ public class ServiceExecutor {
     }
 
     // Implementations for Management and Password requests
-    private <T> T requestExecuteToServer(ServerDescription server, IManagementServiceRequest request) {
+    public  <T> T requestExecuteToServer(ServerDescription server, IManagementServiceRequest request) {
         return managementClientService.call(server, request);
     }
 

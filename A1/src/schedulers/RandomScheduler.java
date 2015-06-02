@@ -19,24 +19,25 @@ public class RandomScheduler implements IScheduler {
 
     @Override
     public ServerDescription getNextServerByType(final ServerType type) throws ServiceUnavailableException {
-        List<ServerDescription> onlineServers = new ArrayList<ServerDescription>();
-        for (ServerDescription description: myServer.getData().getOnlineServers()) {
+        List<ServerDescription> onlineServers = new ArrayList<ServerDescription>(myServer.getData().getOnlineServers());
+        List<ServerDescription> availableServers = new ArrayList<ServerDescription>();
+        for (ServerDescription description: onlineServers) {
             if (description.getType() == type) {
-                onlineServers.add(description);
+                availableServers.add(description);
             }
         }
 
-        if (onlineServers.contains(myServer.getDescription())) {
-            onlineServers.remove(myServer.getDescription());
+        if (availableServers.contains(myServer.getDescription())) {
+            availableServers.remove(myServer.getDescription());
         }
 
-        if (onlineServers.size() == 0) {
+        if (availableServers.size() == 0) {
             throw new ServiceUnavailableException("Could not find any available servers");
         }
 
         Random random = new Random();
-        int r = random.nextInt(onlineServers.size());
-        return onlineServers.get(r);
+        int r = random.nextInt(availableServers.size());
+        return availableServers.get(r);
     }
 
     @Override

@@ -92,6 +92,10 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         LOGGER.debug("Removing client from client pool");
 
         if (map.containsKey(hash(server))) {
+            ConcurrentLinkedQueue<Client<T>> queue = map.get(hash(server));
+            for (Client<T> client: queue) {
+                client.close();
+            }
             map.remove(hash(server));
         }
     }

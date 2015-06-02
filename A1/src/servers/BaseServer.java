@@ -60,12 +60,7 @@ public abstract class BaseServer implements IServer {
         List<ServerDescription> myOnline = myData.getOnlineServers();
         List<ServerDescription> myOffline = myData.getOfflineServers();
 
-        LOGGER.debug("Updating data for " + myDescription.toString());
-        LOGGER.debug("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
-        LOGGER.debug("Offline servers: " + myData.getOfflineServersSize() + " :::: " + myData.getOfflineServers());
-
         // update my list of online servers
-
         // TODO Figure out how to handle killed and restarting nodes
         for (ServerDescription onlineServer: theirData.getOnlineServers()) {
             if (!myOnline.contains(onlineServer)) {
@@ -73,15 +68,10 @@ public abstract class BaseServer implements IServer {
             }
         }
 
-        // update my list of offline servers
-        for (ServerDescription offlineServer: theirData.getOfflineServers()) {
-            if (!myOffline.contains(offlineServer)) {
-                myOffline.add(offlineServer);
-            }
+        // i should never be dead
+        if (myOffline.contains(myDescription)) {
+            myOffline.remove(myDescription);
         }
-
-        // remove servers that are offline
-        myOnline.removeAll(myOffline);
 
         LOGGER.debug("Updated data for: " + myDescription.toString());
         LOGGER.info("Online servers: " + myData.getOnlineServersSize() + " :::: " + myData.getOnlineServers());
@@ -90,50 +80,59 @@ public abstract class BaseServer implements IServer {
 
     @Override
     public synchronized void removeDownedService(ServerDescription server) {
-        LOGGER.info("Starting broadcast of downed service " + server.toString());
+        LOGGER.info("Removing downed service " + server.toString());
 
         List<ServerDescription> myOnline = myData.getOnlineServers();
-        List<ServerDescription> myOffline = myData.getOfflineServers();
-        myOnline.remove(server);
-        myOffline.add(server);
+        if (myOnline.contains(server)) {
+            myOnline.remove(server);
+        }
 
         myData.setOnlineServers(myOnline);
-        myData.setOfflineServers(myOffline);
 
         LOGGER.info("Successfully removed " + server.toString());
     }
 
     @Override
     public synchronized void onConnectionFailed(final ServerDescription failedServer) {
-        myData.getOnlineServers().remove(failedServer);
-        myData.getOfflineServers().add(failedServer);
+        removeDownedService(failedServer);
 
         // Send this to all other servers
-        List<ServerDescription> myOnline = myData.getOnlineServers();
+        List<ServerDescription> myOnline = new ArrayList<ServerDescription>(myData.getOnlineServers());
+        if (myOnline.contains(myDescription)) {
+            myOnline.remove(myDescription);
+        }
+        if (myOnline.contains(failedServer)) {
+            myOnline.remove(myDescription);
+        }
+
         ExecutorService executor = Executors.newFixedThreadPool(myOnline.size());
         final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
         for (final ServerDescription online : myOnline) {
-            workers.add(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    serviceExecutor.requestExecuteToServer(online.getHost(), online.getMport(), new IManagementServiceRequest() {
-                        @Override
-                        public Void perform(A1Management.Iface client) throws TException {
-                            client.serviceEndpointDown(failedServer);
-                            return null;
-                        }
-                    });
-                    return null;
-                }
-            });
+            if (online.getType() == ServerType.FE) {
+                workers.add(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        serviceExecutor.requestExecuteToServer(online, new IManagementServiceRequest() {
+                            @Override
+                            public Void perform(A1Management.Iface client) throws TException {
+                                client.serviceEndpointDown(failedServer);
+                                return null;
+                            }
+                        });
+                        return null;
+                    }
+                });
+            }
         }
 
         try {
             if (!workers.isEmpty()) {
-                executor.invokeAll(workers);
+                executor.invokeAny(workers);
             }
         } catch (InterruptedException ie) {
             LOGGER.error("Executor threw an exception", ie);
+        } catch (ExecutionException e) {
+            LOGGER.error("Executor threw an exception", e);
         }
     }
 

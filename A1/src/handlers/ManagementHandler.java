@@ -29,7 +29,7 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
     public PerfCounters getPerfCounters() throws TException {
         LOGGER.debug("Getting performance counters");
         long currentTime = Calendar.getInstance().getTimeInMillis();
-        counter.setNumSecondUp((int) (currentTime - serverStartTime));
+        counter.setNumSecondUp((int)(currentTime - serverStartTime) / 1000);
         return counter;
     }
 

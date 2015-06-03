@@ -11,6 +11,7 @@ import utilities.ServerDescriptionParser;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class BaseServer implements IServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseServer.class.getName());
@@ -68,7 +69,7 @@ public abstract class BaseServer implements IServer {
         }
 
         LOGGER.debug("Updated data for: " + myDescription.toString());
-        LOGGER.info("Online servers: " + myData.getOnlineServersSize());
+        LOGGER.debug("Online servers: " + myData.getOnlineServersSize());
     }
 
     @Override
@@ -149,6 +150,9 @@ public abstract class BaseServer implements IServer {
         final ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
         final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
         final IServer server = this;
+
+        final AtomicBoolean isAnyCompleted = new AtomicBoolean(false);
+
         for (int i = 0; i < seedHosts.size(); ++i) {
             final String seedHost = seedHosts.get(i);
             final int seedPort = seedPorts.get(i);
@@ -157,15 +161,28 @@ public abstract class BaseServer implements IServer {
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        ServerData theirData = serviceExecutor.requestExecuteToServer(seedHost, seedPort, new IManagementServiceRequest() {
-                            @Override
-                            public ServerData perform(A1Management.Iface client) throws TException {
-                                return client.exchangeServerData(getData());
-                            }
-                        });
 
-                        if (theirData != null) {
-                            server.updateData(theirData);
+                        ServerData seedData = null;
+                        while (!isAnyCompleted.get()) {
+                            seedData = (ServerData)serviceExecutor.requestExecuteToServer(seedHost, seedPort, new IManagementServiceRequest() {
+                                @Override
+                                public ServerData perform(A1Management.Iface client) throws TException {
+                                    return client.exchangeServerData(getData());
+                                }
+                            });
+
+                            if (seedData != null) {
+                                isAnyCompleted.set(true);
+                                LOGGER.debug(myDescription.toString() + ";  Completed Registration");
+                            } else {
+                                Thread.sleep(100);
+                                LOGGER.error(myDescription.toString() + ";  Stuck in loop");
+                            }
+
+                        }
+
+                        if (seedData != null) {
+                            server.updateData(seedData);
                         }
 
                         LOGGER.debug("Completed first registration handshake with seed");
@@ -175,7 +192,7 @@ public abstract class BaseServer implements IServer {
             }
         }
 
-        if (!workers.isEmpty()) {
+        if (!isSeedNode() && !workers.isEmpty()) {
             try {
                 executor.invokeAny(workers);
             } catch (InterruptedException e) {
@@ -244,5 +261,18 @@ public abstract class BaseServer implements IServer {
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
         registerWithSeedNodes();
         initializeEndpoints(pHandler, mHandler);
+    }
+
+    private boolean isSeedNode() {
+        boolean isSeedNode = false;
+        for (int i = 0; i < seedHosts.size(); ++i) {
+            final String seedHost = seedHosts.get(i);
+            final int seedPort = seedPorts.get(i);
+            if (myDescription.getHost().equals(seedHost) && myDescription.getMport() == seedPort) {
+                isSeedNode = true;
+                break;
+            }
+        }
+        return isSeedNode;
     }
 }

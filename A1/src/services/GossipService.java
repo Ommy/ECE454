@@ -34,11 +34,10 @@ public class GossipService {
                         }
                     });
 
-                    LOGGER.info("Gossiping");
                     if (theirData != null) {
                         server.updateData(theirData);
                     } else {
-                        LOGGER.info("Lost gossip");
+                        LOGGER.error("Lost gossip");
                     }
 
                     Thread.sleep(100);

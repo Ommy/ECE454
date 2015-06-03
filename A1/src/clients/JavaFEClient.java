@@ -31,7 +31,7 @@ public class JavaFEClient extends BaseClient {
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        TTransport transport = new TSocket(description.getHost(), 14561 + count);
+                        TTransport transport = new TSocket(description.getHost(), description.getPport() + count);
                         transport.open();
                         TProtocol protocol = new TBinaryProtocol(transport);
                         A1Password.Client client = new A1Password.Client(protocol);
@@ -52,7 +52,7 @@ public class JavaFEClient extends BaseClient {
 
             TTransport transport = null;
             for (int i = 0; i < 10; i++) {
-                transport = new TSocket(description.getHost(), 1331+i);
+                transport = new TSocket(description.getHost(), description.getMport() + i);
                 transport.open();
                 TProtocol protocol = new TBinaryProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);

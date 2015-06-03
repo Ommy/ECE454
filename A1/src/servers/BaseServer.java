@@ -146,7 +146,7 @@ public abstract class BaseServer implements IServer {
             throw new IllegalArgumentException("Seed lists should never be empty");
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
+        final ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
         final List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
         final IServer server = this;
         for (int i = 0; i < seedHosts.size(); ++i) {
@@ -174,16 +174,15 @@ public abstract class BaseServer implements IServer {
                 });
             }
         }
-        try {
-            if (!workers.isEmpty()) {
+
+        if (!workers.isEmpty()) {
+            try {
                 executor.invokeAny(workers);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("No workers found. Worker list size: " + workers.size(), e);
         }
 
         LOGGER.debug("Completed registering with any endpoint");

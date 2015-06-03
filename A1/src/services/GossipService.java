@@ -25,7 +25,8 @@ public class GossipService {
                 // at least one myServer not myself
                 if (server.getData().getOnlineServersSize() > 1) {
 
-                    // gossip protocol handshakes will all online servers
+
+                    // gossip protocol handshakes with all online servers
                     ServerData theirData = server.getServiceExecutor().requestExecuteAnyByType(ServerType.FE, new IManagementServiceRequest()
                     {
                         @Override

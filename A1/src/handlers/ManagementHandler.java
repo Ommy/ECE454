@@ -59,6 +59,4 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
     public ServerDescription getServerDescription() throws TException {
         return myServer.getDescription();
     }
-
-
 }

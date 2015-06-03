@@ -21,9 +21,7 @@ public class EndpointProvider {
             // TODO: Choose an appropriate transport and protocol
             TServerSocket transport = new TServerSocket(description.getMport());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                    .processor(processor)
-                    .maxWorkerThreads(Integer.MAX_VALUE)
-                    .minWorkerThreads(description.getNcores()));
+                    .processor(processor).maxWorkerThreads(Integer.MAX_VALUE));
             server.serve();
 
         } catch (TException te) {
@@ -41,9 +39,7 @@ public class EndpointProvider {
         try {
             TServerSocket transport = new TServerSocket(description.getPport());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                    .processor(processor)
-                    .maxWorkerThreads(Integer.MAX_VALUE)
-                    .minWorkerThreads(description.getNcores()));
+                    .processor(processor).maxWorkerThreads(Integer.MAX_VALUE));
             server.serve();
         } catch (TException te) {
             // TODO: Handle exception

@@ -35,8 +35,9 @@ public class JavaFEClient extends BaseClient {
                         transport.open();
                         TProtocol protocol = new TBinaryProtocol(transport);
                         A1Password.Client client = new A1Password.Client(protocol);
-                        for (int j = 0; j < 1; j++) {
-                            System.out.println(client.hashPassword("hunter2" + j, (short) (10)) + " index: " + j + " worker: " + count);
+                        for (int j = 0; j < 100; j++) {
+                            client.hashPassword("hunter2" + j, (short) (10));
+//                            System.out.println( + " index: " + j + " worker: " + count);
                         }
                         transport.close();
                         return null;
@@ -44,11 +45,7 @@ public class JavaFEClient extends BaseClient {
                 });
             }
 
-            System.out.println(workers.size());
-
             executor.invokeAll(workers);
-
-            System.out.println("Finished running invokeAll");
 
             TTransport transport = null;
             for (int i = 0; i < 10; i++) {

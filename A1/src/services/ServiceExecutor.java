@@ -56,7 +56,7 @@ public class ServiceExecutor {
     }
 
     public <T> T requestExecute(ServerType type, IPasswordServiceRequest request) throws ServiceUnavailableException {
-        ServerDescription server = roundRobinScheduler.getNextServerByType(type);
+        ServerDescription server = loadBalancedScheduler.getNextServerByType(type);
         return requestExecuteToServer(server, request);
     }
 

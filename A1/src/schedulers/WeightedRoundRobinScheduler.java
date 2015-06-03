@@ -14,19 +14,21 @@ import java.util.List;
 import java.util.Random;
 
 public class WeightedRoundRobinScheduler implements IScheduler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WeightedRoundRobinScheduler.class.toString());
+
     private final IServer myServer;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RandomWeightedCoresScheduler.class.toString());
-    private static ServerDescription lastServerReturned;
+    private ServerDescription lastServerReturned;
+    private int currentWeight;
+    private int idx;
 
     public WeightedRoundRobinScheduler(IServer server) {
         myServer = server;
+        currentWeight = 0;
+        idx = -1;
     }
 
     @Override
     public ServerDescription getNextServerByType(ServerType type) throws ServiceUnavailableException {
-        int idx;
-        int currentWeight = 0;
-        Random random = new Random();
         List<ServerDescription> servers = new ArrayList<ServerDescription>();
         for (ServerDescription server: myServer.getData().getOnlineServers()) {
             if (server.getType() == type) {
@@ -43,51 +45,51 @@ public class WeightedRoundRobinScheduler implements IScheduler {
             weights.add(server.getNcores());
         }
 
-        if (lastServerReturned == null) {
-            idx = -1;
-        } else {
-            idx = myServer.getData().getOnlineServers().indexOf(lastServerReturned);
-        }
-
+        ServerDescription chosenServer = null;
+        Random random = new Random();
         while (true) {
             idx = (idx + 1) % servers.size();
             if (idx == 0) {
                 currentWeight = currentWeight - gcd(weights);
                 if (currentWeight <= 0) {
                     currentWeight = max(weights);
+
                     if (currentWeight == 0) {
-                        lastServerReturned = servers.get(random.nextInt(servers.size()));
+                        // should never hit this case
+                        LOGGER.error("Should never get this error");
+                        chosenServer = servers.get(random.nextInt(servers.size()));
                         break;
                     }
                 }
             }
             if (weights.get(idx) >= currentWeight) {
-                lastServerReturned = servers.get(idx);
+                chosenServer = servers.get(idx);
                 break;
             }
         }
 
-        LOGGER.info("Chose server: " + lastServerReturned);
-        return lastServerReturned;
+        LOGGER.debug("Chose server: " + chosenServer);
+        return chosenServer;
     }
 
     @Override
     public ServerDescription getNextServer() throws ServiceUnavailableException {
-        int idx;
-        int currentWeight = 0;
-        Random random = new Random();
         List<ServerDescription> servers = myServer.getData().getOnlineServers();
+
         List<Integer> weights = new ArrayList<Integer>();
         for (ServerDescription server: servers) {
             weights.add(server.getNcores());
         }
 
+        int idx;
         if (lastServerReturned == null) {
             idx = -1;
         } else {
             idx = myServer.getData().getOnlineServers().indexOf(lastServerReturned);
         }
 
+        Random random = new Random();
+        int currentWeight = 0;
         while (true) {
             idx = (idx + 1) % myServer.getData().getOnlineServersSize();
             if (idx == 0) {
@@ -111,8 +113,8 @@ public class WeightedRoundRobinScheduler implements IScheduler {
 
     private int gcd(List<Integer> elements) {
         int result = elements.get(0);
-        for (int i = 0; i < elements.size(); i++) {
-            result = BigInteger.valueOf((long)result).gcd(BigInteger.valueOf((long)elements.get(i))).intValue();
+        for (Integer element : elements) {
+            result = BigInteger.valueOf((long) result).gcd(BigInteger.valueOf((long) element)).intValue();
         }
         return result;
     }

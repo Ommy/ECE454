@@ -25,7 +25,6 @@ public class GossipService {
                 // at least one myServer not myself
                 if (server.getData().getOnlineServersSize() > 1) {
 
-
                     // gossip protocol handshakes with all online servers
                     ServerData theirData = server.getServiceExecutor().requestExecuteAnyByType(ServerType.FE, new IManagementServiceRequest()
                     {
@@ -35,8 +34,11 @@ public class GossipService {
                         }
                     });
 
+                    LOGGER.info("Gossiping");
                     if (theirData != null) {
                         server.updateData(theirData);
+                    } else {
+                        LOGGER.info("Lost gossip");
                     }
 
                     Thread.sleep(100);

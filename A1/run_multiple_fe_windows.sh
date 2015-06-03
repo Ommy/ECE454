@@ -2,13 +2,13 @@
 
 echo "Spawning 10 FE clients"
 
-for i in `seq 1 5` ;
+for i in `seq 1 10`;
 do
-    pport=$((i+1255))
-    mport=$((i+1330))
+    pport=$((i+4848))
+    mport=$((i+6719))
     ncores=$(( ( RANDOM % 3 )  + 1 ))
     echo "Password Port: $pport"
     echo "Management Port: $mport"
     echo "Number of Cores: $ncores"
-    (java -Xmx1024M -cp "dist/lib/ece454750s15a1.jar;lib/*" ece454750s15a1.FEServer -pport $pport -mport $mport -ncores $ncores -seeds localhost:1331,localhost:1332,localhost:1333 &)
+    (java -Xmx64m -cp "dist/lib/ece454750s15a1.jar;lib/*" ece454750s15a1.FEServer -pport $pport -mport $mport -ncores $ncores -seeds localhost:16719,localhost:26719,localhost:36719 &)
 done

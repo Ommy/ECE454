@@ -68,7 +68,7 @@ public abstract class BaseServer implements IServer {
         }
 
         LOGGER.debug("Updated data for: " + myDescription.toString());
-        LOGGER.debug("Online servers: " + myData.getOnlineServers());
+        LOGGER.info("Online servers: " + myData.getOnlineServersSize());
     }
 
     @Override

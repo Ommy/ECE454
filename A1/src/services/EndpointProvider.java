@@ -6,6 +6,7 @@ import ece454750s15a1.ServerDescription;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +52,26 @@ public class EndpointProvider {
 
 
     public void serveManagementEndpointAsync(ServerDescription description, final A1Management.AsyncIface handler) {
-        A1Management.AsyncProcessor processor = new A1Management.AsyncProcessor<A1Management.AsyncIface>(handler);
+
+        try {
+            A1Management.AsyncProcessor processor = new A1Management.AsyncProcessor<A1Management.AsyncIface>(handler);
+            TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getPport());
+            TServer server = new TThreadedSelectorServer(new TThreadedSelectorServer.Args(transport).processor(processor).workerThreads(10).selectorThreads(10));
+            server.serve();
+        } catch (TTransportException e) {
+            e.printStackTrace();
+        }
     }
 
     public void servePassswordEndpointAsync(ServerDescription description, final A1Password.AsyncIface handler) {
-        A1Password.AsyncProcessor processor = new A1Password.AsyncProcessor<A1Password.AsyncIface>(handler);
+
+        try {
+            A1Password.AsyncProcessor processor = new A1Password.AsyncProcessor<A1Password.AsyncIface>(handler);
+            TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getMport());
+            TServer server = new TThreadedSelectorServer(new TThreadedSelectorServer.Args(transport).processor(processor).workerThreads(10).selectorThreads(10));
+            server.serve();
+        } catch (TTransportException e) {
+            e.printStackTrace();
+        }
     }
 }

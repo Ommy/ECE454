@@ -12,6 +12,7 @@ import requests.IPasswordServiceRequest;
 import schedulers.IScheduler;
 import schedulers.RandomScheduler;
 import schedulers.RandomWeightedCoresScheduler;
+import schedulers.WeightedRoundRobinScheduler;
 import servers.IServer;
 import services.clientpool.IClientService;
 import services.clientpool.ManagementClientPoolService;
@@ -22,6 +23,7 @@ public class ServiceExecutor {
 
     private final IScheduler randomScheduler;
     private final IScheduler loadBalancedScheduler;
+    private final IScheduler roundRobinScheduler;
     private final IClientService<IPasswordServiceRequest, IPasswordServiceAsyncRequest> passwordClientService;
     private final IClientService<IManagementServiceRequest, IManagementServiceAsyncRequest> managementClientService;
 
@@ -31,6 +33,7 @@ public class ServiceExecutor {
 
         managementClientService = new ManagementClientPoolService(server);
         passwordClientService = new PasswordClientPoolService(server);
+        roundRobinScheduler = new WeightedRoundRobinScheduler(server);
     }
 
     // Only use for registering with seed nodes when you have no ServerDescription data
@@ -53,7 +56,7 @@ public class ServiceExecutor {
     }
 
     public <T> T requestExecute(ServerType type, IPasswordServiceRequest request) throws ServiceUnavailableException {
-        ServerDescription server = loadBalancedScheduler.getNextServerByType(type);
+        ServerDescription server = roundRobinScheduler.getNextServerByType(type);
         return requestExecuteToServer(server, request);
     }
 

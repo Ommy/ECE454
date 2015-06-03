@@ -2,7 +2,7 @@
 
 echo "Spawning 10 FE clients"
 
-for i in `seq 1 4` ;
+for i in `seq 1 10` ;
 do
     pport=$((i+14560))
     mport=$((i+1330))

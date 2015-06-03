@@ -25,26 +25,26 @@ public class JavaFEClient extends BaseClient {
             ExecutorService executor = Executors.newFixedThreadPool(10);
 
             List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-            final Random r = new Random();
-
 
             for (int i = 0; i < 10; i++) {
                 final int count = i;
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        TTransport transport = new TSocket(description.getHost(), 14560 + count);
+                        TTransport transport = new TSocket(description.getHost(), 14561 + count);
                         transport.open();
                         TProtocol protocol = new TBinaryProtocol(transport);
                         A1Password.Client client = new A1Password.Client(protocol);
-                        for (int j = 0; j < 10; j++) {
-                            System.out.println(client.hashPassword("hunter2" + j, (short) (10 + r.nextInt(4))));
+                        for (int j = 0; j < 1; j++) {
+                            System.out.println(client.hashPassword("hunter2" + j, (short) (10)) + " index: " + j + " worker: " + count);
                         }
                         transport.close();
                         return null;
                     }
                 });
             }
+
+            System.out.println(workers.size());
 
             executor.invokeAll(workers);
 
@@ -56,11 +56,9 @@ public class JavaFEClient extends BaseClient {
                 transport.open();
                 TProtocol protocol = new TBinaryProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);
-                System.out.println(client1.getPerfCounters().toString());
+                System.out.println(client1.getPerfCounters().toString() + " index: " + i);
                 transport.close();
             }
-
-         executor.shutdown();
 
         } catch (TException x) {
             x.printStackTrace();

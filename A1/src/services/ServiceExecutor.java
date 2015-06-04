@@ -23,7 +23,6 @@ public class ServiceExecutor {
 
     private final IScheduler randomScheduler;
     private final IScheduler loadBalancedScheduler;
-    private final IScheduler roundRobinScheduler;
     private final IClientService<IPasswordServiceRequest, IPasswordServiceAsyncRequest> passwordClientService;
     private final IClientService<IManagementServiceRequest, IManagementServiceAsyncRequest> managementClientService;
 
@@ -33,7 +32,6 @@ public class ServiceExecutor {
 
         managementClientService = new ManagementClientPoolService(server);
         passwordClientService = new PasswordClientPoolService(server);
-        roundRobinScheduler = new WeightedRoundRobinScheduler(server);
     }
 
     // Only use for registering with seed nodes when you have no ServerDescription data

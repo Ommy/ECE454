@@ -23,15 +23,15 @@ public class JavaFEClient extends BaseClient {
         final ServerDescription description = parser.parse(args, ServerType.FE);
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(10);
+            ExecutorService executor = Executors.newFixedThreadPool(2);
 
             List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1; i++) {
                 final int count = i;
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() {
-                        TTransport transport = new TFramedTransport(new TSocket(description.getHost(), description.getPport()));
+                        TTransport transport = new TSocket(description.getHost(), description.getPport());
 
                         try {
                             transport.open();
@@ -63,13 +63,15 @@ public class JavaFEClient extends BaseClient {
 
             TTransport transport = null;
             for (int i = 0; i < 1; i++) {
-                transport = new TSocket(description.getHost(), description.getMport());
+                transport = new TFramedTransport(new TSocket(description.getHost(), description.getMport()));
                 transport.open();
                 TProtocol protocol = new TCompactProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);
                 System.out.println(client1.getPerfCounters().toString() + " index: " + i);
                 transport.close();
             }
+
+            executor.shutdown();
 
         } catch (TException x) {
             x.printStackTrace();

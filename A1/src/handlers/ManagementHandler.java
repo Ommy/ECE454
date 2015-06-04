@@ -21,7 +21,7 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
     }
 
     @Override
-    public List<String> getGroupMembers() throws TException {
+    public List<String> getGroupMembers() {
         return new ArrayList<String>(GROUP_MEMBERS);
     }
 

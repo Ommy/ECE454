@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import servers.IServer;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -22,7 +22,7 @@ public class RandomWeightedCoresScheduler implements IScheduler{
 
     @Override
     public ServerDescription getNextServerByType(final ServerType type) throws ServiceUnavailableException {
-        List<ServerDescription> onlineNodes = new ArrayList<ServerDescription>();
+        List<ServerDescription> onlineNodes = new LinkedList<ServerDescription>();
         int weightSum = 0;
 
         for (ServerDescription description : myServer.getData().getOnlineServers()) {
@@ -53,7 +53,7 @@ public class RandomWeightedCoresScheduler implements IScheduler{
 
     @Override
     public ServerDescription getNextServer() throws ServiceUnavailableException {
-        List<ServerDescription> onlineNodes = new ArrayList<ServerDescription>();
+        List<ServerDescription> onlineNodes = new LinkedList<ServerDescription>();
         int weightSum = 0;
 
         for (ServerDescription description : myServer.getData().getOnlineServers()) {

@@ -3,8 +3,8 @@ package utilities;
 import ece454750s15a1.ServerDescription;
 import ece454750s15a1.ServerType;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ServerDescriptionParser {
@@ -27,7 +27,7 @@ public class ServerDescriptionParser {
         int pport = DEFAULT_PPORT;
         int mport = DEFAULT_MPORT;
         int ncores = DEFAULT_NCORES;
-        List<String> seedsList = new ArrayList<String>();
+        List<String> seedsList = new LinkedList<String>();
         ServerType otype = type;
 
         for (int i = 0; i < args.length; i++) {
@@ -46,7 +46,6 @@ public class ServerDescriptionParser {
             }
         }
 
-        ServerDescription description = new ServerDescription(host, pport, mport, ncores, otype, seedsList);
-        return description;
+        return new ServerDescription(host, pport, mport, ncores, otype, seedsList);
     }
 }

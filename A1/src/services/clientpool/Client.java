@@ -21,9 +21,8 @@ public class Client<T extends TServiceClient> implements Closeable {
         private static TCompactProtocol.Factory compactProtocolFactory = new TCompactProtocol.Factory();
         private static TBinaryProtocol.Factory binaryProtocolFactory = new TBinaryProtocol.Factory();
 
-        public static Client<A1Management.Client> createSimpleManagementClient(String host, int mport) throws TTransportException {
-//            TFramedTransport transport = new TFramedTransport(new TSocket(host, mport));
-            TTransport transport = new TSocket(host, mport);
+        public static Client<A1Management.Client> createSimpleManagementClient(String host, int mport) {
+            TFramedTransport transport = new TFramedTransport(new TSocket(host, mport));
             TProtocol protocol = compactProtocolFactory.getProtocol(transport); //binaryProtocolFactory.getProtocol(transport);
             A1Management.Client client = managementFactory.getClient(protocol);
 

@@ -38,15 +38,12 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
             LOGGER.info("Created client");
 
             client.open();
-
             LOGGER.info("Opened client");
 
             A1Management.Client mClient = client.getClient();
-
             LOGGER.info("Got client");
 
             result = request.perform(mClient);
-
             LOGGER.info("Completed action");
 
             client.close();

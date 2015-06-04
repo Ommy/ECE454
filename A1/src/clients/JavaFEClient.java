@@ -3,9 +3,11 @@ package clients;
 import ece454750s15a1.*;
 import org.apache.thrift.TException;
 
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 
@@ -32,7 +34,7 @@ public class JavaFEClient extends BaseClient {
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() {
-                        TTransport transport = new TSocket(description.getHost(), description.getPport());
+                        TTransport transport = new TFramedTransport(new TSocket(description.getHost(), description.getPport()));
                         try {
                             transport.open();
                         } catch (TTransportException e) {
@@ -63,7 +65,7 @@ public class JavaFEClient extends BaseClient {
 
             TTransport transport = null;
             for (int i = 0; i < 1; i++) {
-                transport = new TSocket(description.getHost(), description.getMport());
+                transport = new TFramedTransport(new TSocket(description.getHost(), description.getMport()));
                 transport.open();
                 TProtocol protocol = new TBinaryProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);

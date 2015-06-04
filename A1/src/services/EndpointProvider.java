@@ -4,6 +4,7 @@ import ece454750s15a1.A1Management;
 import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -41,9 +42,14 @@ public class EndpointProvider {
 
         A1Password.Processor processor = new A1Password.Processor<A1Password.Iface>(handler);
         try {
-            TServerSocket transport = new TServerSocket(description.getPport());
-            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                    .processor(processor).maxWorkerThreads(5));
+
+            TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getPport());
+            TThreadedSelectorServer server = new TThreadedSelectorServer(
+                    new TThreadedSelectorServer.Args(transport).processor(processor)
+                            .transportFactory(new TFramedTransport.Factory())
+                            .protocolFactory(new TBinaryProtocol.Factory())
+                            .selectorThreads(8)
+                            .workerThreads(8));
 
             LOGGER.info("Can serve password endpoint");
 

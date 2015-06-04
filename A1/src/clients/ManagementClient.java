@@ -1,7 +1,6 @@
 package clients;
 
 import ece454750s15a1.A1Management;
-import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
 import ece454750s15a1.ServerType;
 import org.apache.thrift.TException;
@@ -25,8 +24,6 @@ public class ManagementClient extends BaseClient {
 
             System.out.println(client.getServerDescription().toString());
             System.out.println(client.getPerfCounters().toString());
-//            System.out.println(client.getGroupMembers().toString());
-//            System.out.println(client.getServerData().toString());
             transport.close();
 
         } catch (TTransportException e) {

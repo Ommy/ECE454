@@ -100,7 +100,7 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
         }
     }
 
-    protected <T extends TAsyncClient> void handleAsyncClientFailed(ServerDescription server, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map) {
+    protected synchronized <T extends TAsyncClient> void handleAsyncClientFailed(ServerDescription server, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map) {
         LOGGER.debug("Removing client from client pool");
 
         if (map.containsKey(hash(server))) {

@@ -74,10 +74,6 @@ public class AsyncClient<T extends TAsyncClient> implements Closeable {
         }
     }
 
-    public TTransport getTransport() {
-        return transport;
-    }
-
     public T getClient() {
         return client;
     }

@@ -5,11 +5,8 @@ import org.apache.thrift.TException;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.*;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransportException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,21 +23,22 @@ public class JavaFEClient extends BaseClient {
         final ServerDescription description = parser.parse(args, ServerType.FE);
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(1);
+            ExecutorService executor = Executors.newFixedThreadPool(10);
 
             List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 10; i++) {
                 final int count = i;
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() {
                         TTransport transport = new TFramedTransport(new TSocket(description.getHost(), description.getPport()));
+
                         try {
                             transport.open();
                         } catch (TTransportException e) {
                             e.printStackTrace();
                         }
-                        TProtocol protocol = new TBinaryProtocol(transport);
+                        TProtocol protocol = new TCompactProtocol(transport);
                         A1Password.Client client = new A1Password.Client(protocol);
                         for (int j = 0; j < 50; j++) {
                             System.out.println("At index: " + j + " worker: " + count);
@@ -65,9 +63,9 @@ public class JavaFEClient extends BaseClient {
 
             TTransport transport = null;
             for (int i = 0; i < 1; i++) {
-                transport = new TFramedTransport(new TSocket(description.getHost(), description.getMport()));
+                transport = new TSocket(description.getHost(), description.getMport());
                 transport.open();
-                TProtocol protocol = new TBinaryProtocol(transport);
+                TProtocol protocol = new TCompactProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);
                 System.out.println(client1.getPerfCounters().toString() + " index: " + i);
                 transport.close();

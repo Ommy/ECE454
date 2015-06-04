@@ -172,6 +172,7 @@ public abstract class BaseServer implements IServer {
                                     ServerData myData = getData();
 
                                     LOGGER.info("Got my data");
+
                                     ServerData theirData = client.exchangeServerData(myData);
 
                                     LOGGER.info("Got their data");

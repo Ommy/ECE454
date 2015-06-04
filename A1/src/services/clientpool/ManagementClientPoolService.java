@@ -3,6 +3,9 @@ package services.clientpool;
 import ece454750s15a1.A1Management;
 import ece454750s15a1.ServerDescription;
 import org.apache.thrift.TException;
+import org.apache.thrift.TServiceClient;
+import org.apache.thrift.TServiceClientFactory;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import requests.IManagementServiceAsyncRequest;
@@ -43,6 +46,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
             A1Management.Client mClient = client.getClient();
             LOGGER.info("Got client");
 
+
             result = request.perform(mClient);
             LOGGER.info("Completed action");
 
@@ -65,11 +69,10 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         try {
             LOGGER.debug("Re-using client connection");
 
-            Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getMport(),
-                                                            clients, managementFactory);
+            Client<A1Management.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getMport());
             client.open();
             result = request.perform(client.getClient());
-            returnClient(targetServer, client, clients);
+            returnClient(targetServer, client);
 
             LOGGER.debug("Completed re-usable client connection");
         } catch (TException te) {
@@ -142,5 +145,26 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
                 client.close();
             }
         }
+    }
+
+    protected Client<A1Management.Client> takeClient(ServerDescription server, String host, int port) throws TTransportException {
+        Client<A1Management.Client> client = null;
+        if (!clients.containsKey(hash(server))) {
+            client = Client.Factory.createSimpleManagementClient(host, port);
+        } else {
+            client = clients.get(hash(server)).poll();
+            if (client == null) {
+                client = Client.Factory.createSimpleManagementClient(host, port);
+            }
+        }
+        return client;
+    }
+
+    protected <T extends TServiceClient> void returnClient(ServerDescription server, Client<A1Management.Client> client) {
+        if (!clients.containsKey(hash(server))) {
+            clients.put(hash(server), new ConcurrentLinkedQueue<Client<A1Management.Client>>());
+        }
+
+        clients.get(hash(server)).offer(client);
     }
 }

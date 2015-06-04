@@ -2,7 +2,7 @@
 
 echo "Spawning 20 BE nodes"
 
-for i in `seq 1 1` ;
+for i in `seq 1 10` ;
 do
     pport=$((i+14580))
     mport=$((i+15670))

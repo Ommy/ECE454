@@ -5,6 +5,7 @@ import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -23,7 +24,9 @@ public class EndpointProvider {
             // TODO: Choose an appropriate transport and protocol
             TServerSocket transport = new TServerSocket(description.getMport());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                    .processor(processor).maxWorkerThreads(5));
+                    .protocolFactory(new TCompactProtocol.Factory())
+                    .processor(processor)
+                    .maxWorkerThreads(5));
 
             LOGGER.info("Can serve management endpoint");
 
@@ -47,7 +50,7 @@ public class EndpointProvider {
             TThreadedSelectorServer server = new TThreadedSelectorServer(
                     new TThreadedSelectorServer.Args(transport).processor(processor)
                             .transportFactory(new TFramedTransport.Factory())
-                            .protocolFactory(new TBinaryProtocol.Factory())
+                            .protocolFactory(new TCompactProtocol.Factory())
                             .selectorThreads(8)
                             .workerThreads(8));
 

@@ -21,9 +21,10 @@ public class Client<T extends TServiceClient> implements Closeable {
         private static TCompactProtocol.Factory compactProtocolFactory = new TCompactProtocol.Factory();
         private static TBinaryProtocol.Factory binaryProtocolFactory = new TBinaryProtocol.Factory();
 
-        public static Client<A1Management.Client> createSimpleManagementClient(String host, int mport) {
-            TFramedTransport transport = new TFramedTransport(new TSocket(host, mport));
-            TProtocol protocol = binaryProtocolFactory.getProtocol(transport);
+        public static Client<A1Management.Client> createSimpleManagementClient(String host, int mport) throws TTransportException {
+//            TFramedTransport transport = new TFramedTransport(new TSocket(host, mport));
+            TTransport transport = new TSocket(host, mport);
+            TProtocol protocol = compactProtocolFactory.getProtocol(transport); //binaryProtocolFactory.getProtocol(transport);
             A1Management.Client client = managementFactory.getClient(protocol);
 
             return new Client<A1Management.Client>(transport, protocol, client);
@@ -31,7 +32,7 @@ public class Client<T extends TServiceClient> implements Closeable {
 
         public static Client<A1Password.Client> createSimplePasswordClient(String host, int pport) {
             TTransport transport = new TFramedTransport(new TSocket(host, pport));
-            TProtocol protocol = binaryProtocolFactory.getProtocol(transport);
+            TProtocol protocol = compactProtocolFactory.getProtocol(transport); //binaryProtocolFactory.getProtocol(transport);
             A1Password.Client client = passwordFactory.getClient(protocol);
 
             return new Client<A1Password.Client>(transport, protocol, client);
@@ -39,7 +40,7 @@ public class Client<T extends TServiceClient> implements Closeable {
 
         public static <T extends TServiceClient> Client<T> createSimpleClient(String host, int port, TServiceClientFactory<T> factory) {
             TTransport transport = new TFramedTransport(new TSocket(host, port));
-            TProtocol protocol = binaryProtocolFactory.getProtocol(transport);
+            TProtocol protocol = compactProtocolFactory.getProtocol(transport); //binaryProtocolFactory.getProtocol(transport);
             T client = factory.getClient(protocol);
 
             return new Client<T>(transport, protocol, client);

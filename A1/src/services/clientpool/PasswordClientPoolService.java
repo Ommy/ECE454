@@ -1,8 +1,10 @@
 package services.clientpool;
 
+import ece454750s15a1.A1Management;
 import ece454750s15a1.A1Password;
 import ece454750s15a1.ServerDescription;
 import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import requests.IPasswordServiceAsyncRequest;
@@ -55,11 +57,10 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         try {
             LOGGER.debug("Re-using client connection");
 
-            Client<A1Password.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getPport(),
-                    clients, passwordFactory);
+            Client<A1Password.Client> client = takeClient(targetServer, targetServer.getHost(), targetServer.getPport());
             client.open();
             result = request.perform(client.getClient());
-            returnClient(targetServer, client, clients);
+            returnClient(targetServer, client);
 
             LOGGER.debug("Completed re-usable client connection");
         } catch (TException te) {
@@ -132,5 +133,26 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
                 client.close();
             }
         }
+    }
+
+    protected Client<A1Password.Client> takeClient(ServerDescription server, String host, int port) throws TTransportException {
+        Client<A1Password.Client> client = null;
+        if (!clients.containsKey(hash(server))) {
+            client = Client.Factory.createSimplePasswordClient(host, port);
+        } else {
+            client = clients.get(hash(server)).poll();
+            if (client == null) {
+                client = Client.Factory.createSimplePasswordClient(host, port);
+            }
+        }
+        return client;
+    }
+
+    protected void returnClient(ServerDescription server, Client<A1Password.Client> client) {
+        if (!clients.containsKey(hash(server))) {
+            clients.put(hash(server), new ConcurrentLinkedQueue<Client<A1Password.Client>>());
+        }
+
+        clients.get(hash(server)).offer(client);
     }
 }

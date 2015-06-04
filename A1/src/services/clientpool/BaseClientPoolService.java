@@ -11,6 +11,7 @@ import org.apache.thrift.async.TAsyncClientFactory;
 import org.apache.thrift.async.TAsyncClientManager;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,30 +43,10 @@ public abstract class BaseClientPoolService<T extends TServiceClient, TA extends
     }
 
 
-    private String hash(ServerDescription server) {
+    protected String hash(ServerDescription server) {
         return server.getHost() + "," + server.getPport() + "," + server.getMport();
     }
 
-    protected <T extends TServiceClient> Client<T> takeClient(ServerDescription server, String host, int port, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map, TServiceClientFactory<T> factory) {
-        Client<T> client = null;
-        if (!map.containsKey(hash(server))) {
-            client = Client.Factory.createSimpleClient(host, port, factory);
-        } else {
-            client = map.get(hash(server)).poll();
-            if (client == null) {
-                client = Client.Factory.createSimpleClient(host, port, factory);
-            }
-        }
-        return client;
-    }
-
-    protected <T extends TServiceClient> void returnClient(ServerDescription server, Client<T> client, HashMap<String, ConcurrentLinkedQueue<Client<T>>> map) {
-        if (!map.containsKey(hash(server))) {
-            map.put(hash(server), new ConcurrentLinkedQueue<Client<T>>());
-        }
-
-        map.get(hash(server)).offer(client);
-    }
 
     protected <T extends TAsyncClient> AsyncClient<T> takeAsyncClient(ServerDescription server, String host, int port, HashMap<String, ConcurrentLinkedQueue<AsyncClient<T>>> map, TAsyncClientFactory<T> factory) throws IOException {
         AsyncClient<T> client = null;

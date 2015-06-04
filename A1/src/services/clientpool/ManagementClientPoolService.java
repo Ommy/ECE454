@@ -29,14 +29,26 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
     }
 
     @Override
-    public <T> T callOnce(String host, int port, IManagementServiceRequest request) {
+    public  <T> T callOnce(String host, int port, IManagementServiceRequest request) {
         T result = null;
         try {
-            LOGGER.debug("Calling with one time client connection");
+            LOGGER.info("Calling with one time client connection");
 
             Client<A1Management.Client> client = Client.Factory.createSimpleManagementClient(host, port);
+            LOGGER.info("Created client");
+
             client.open();
-            result = request.perform(client.getClient());
+
+            LOGGER.info("Opened client");
+
+            A1Management.Client mClient = client.getClient();
+
+            LOGGER.info("Got client");
+
+            result = request.perform(mClient);
+
+            LOGGER.info("Completed action");
+
             client.close();
 
             LOGGER.debug("Completed one time client connection");
@@ -121,7 +133,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
     }
 
     @Override
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
         for (ConcurrentLinkedQueue<Client<A1Management.Client>> queue: clients.values()) {
             for (Client<A1Management.Client> client: queue) {
                 client.close();

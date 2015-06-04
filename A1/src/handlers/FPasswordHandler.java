@@ -20,7 +20,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
     @Override
     public String hashPassword(final String password, final short logRounds) throws ServiceUnavailableException {
-        LOGGER.debug("FE Server received request to hashPassword");
+        LOGGER.info("FE Server received request to hashPassword");
 
         updateRequestsReceived();
 
@@ -32,7 +32,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
                 hashedPassword = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
                     @Override
                     public String perform(A1Password.Iface client) throws TException {
-                        LOGGER.debug("Calling hashPassword on client");
+                        LOGGER.info("Calling hashPassword on client");
                         return client.hashPassword(password, logRounds);
                     }
                 });
@@ -59,7 +59,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
 
     @Override
     public boolean checkPassword(final String password, final String hash) throws ServiceUnavailableException {
-        LOGGER.debug("FE Server received request to checkPassword");
+        LOGGER.info("FE Server received request to checkPassword");
 
         updateRequestsReceived();
 
@@ -71,7 +71,7 @@ public class FPasswordHandler extends BaseHandler implements A1Password.Iface {
                 result = myServer.getServiceExecutor().requestExecute(ServerType.BE, new IPasswordServiceRequest() {
                     @Override
                     public Boolean perform(A1Password.Iface client) throws TException {
-                        LOGGER.debug("Calling checkPassword on client");
+                        LOGGER.info("Calling checkPassword on client");
                         return client.checkPassword(password, hash);
                     }
                 });

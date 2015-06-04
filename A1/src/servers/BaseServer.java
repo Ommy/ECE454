@@ -47,12 +47,12 @@ public abstract class BaseServer implements IServer {
     }
 
     @Override
-    public synchronized ServerDescription getDescription() {
+    public ServerDescription getDescription() {
         return new ServerDescription(myDescription);
     }
 
     @Override
-    public synchronized ServerData getData() {
+    public ServerData getData() {
         return new ServerData(myData);
     }
 
@@ -68,13 +68,13 @@ public abstract class BaseServer implements IServer {
             }
         }
 
-        LOGGER.debug("Updated data for: " + myDescription.toString());
-        LOGGER.debug("Online servers: " + myData.getOnlineServersSize());
+        LOGGER.info("Updated data for: " + myDescription.toString());
+        LOGGER.info("Online servers: " + myData.getOnlineServersSize());
     }
 
     @Override
     public synchronized void removeDownedService(ServerDescription server) {
-        LOGGER.debug("Removing downed service " + server.toString());
+        LOGGER.info("Removing downed service " + server.toString());
 
         List<ServerDescription> myOnline = myData.getOnlineServers();
         if (myOnline.contains(server)) {
@@ -83,11 +83,11 @@ public abstract class BaseServer implements IServer {
 
         myData.setOnlineServers(myOnline);
 
-        LOGGER.debug("Successfully removed " + server.toString());
+        LOGGER.info("Successfully removed " + server.toString());
     }
 
     @Override
-    public synchronized void onConnectionFailed(final ServerDescription failedServer) {
+    public void onConnectionFailed(final ServerDescription failedServer) {
         removeDownedService(failedServer);
 
         // Send this to all other servers
@@ -131,17 +131,17 @@ public abstract class BaseServer implements IServer {
     }
 
     @Override
-    public synchronized PerfCounters getPerfCounters() {
+    public PerfCounters getPerfCounters() {
         return myPerfCounter;
     }
 
     @Override
-    public synchronized ServiceExecutor getServiceExecutor() {
+    public ServiceExecutor getServiceExecutor() {
         return serviceExecutor;
     }
 
     private void registerWithSeedNodes() {
-        LOGGER.debug("Registering with the seed nodes");
+        LOGGER.info("Registering with the seed nodes");
 
         if (seedHosts.isEmpty()) {
             throw new IllegalArgumentException("Seed lists should never be empty");
@@ -164,28 +164,35 @@ public abstract class BaseServer implements IServer {
 
                         ServerData seedData = null;
                         while (!isAnyCompleted.get()) {
+
                             seedData = (ServerData)serviceExecutor.requestExecuteToServer(seedHost, seedPort, new IManagementServiceRequest() {
                                 @Override
                                 public ServerData perform(A1Management.Iface client) throws TException {
-                                    return client.exchangeServerData(getData());
+                                    LOGGER.info("Exchanging server data for the first time to: " + seedHost + " : " + seedPort);
+                                    ServerData myData = getData();
+
+                                    LOGGER.info("Got my data");
+                                    ServerData theirData = client.exchangeServerData(myData);
+
+                                    LOGGER.info("Got their data");
+                                    return theirData;
                                 }
                             });
 
                             if (seedData != null) {
                                 isAnyCompleted.set(true);
-                                LOGGER.debug(myDescription.toString() + ";  Completed Registration");
+                                LOGGER.info(myDescription.toString() + ";  Completed Registration");
                             } else {
-                                Thread.sleep(100);
+                                Thread.sleep(200);
                                 LOGGER.error(myDescription.toString() + ";  Stuck in loop");
                             }
-
                         }
 
                         if (seedData != null) {
                             server.updateData(seedData);
                         }
 
-                        LOGGER.debug("Completed first registration handshake with seed");
+                        LOGGER.info("Completed first registration handshake with seed");
                         return null;
                     }
                 });
@@ -202,11 +209,11 @@ public abstract class BaseServer implements IServer {
             }
         }
 
-        LOGGER.debug("Completed registering with any endpoint");
+        LOGGER.info("Completed registering with any endpoint");
     }
 
     private void initializeEndpoints(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
-        LOGGER.debug("Initializing endpoints");
+        LOGGER.info("Initializing endpoints");
 
         final EndpointProvider endpointProvider = new EndpointProvider();
         final GossipService gossipService = new GossipService(this);
@@ -255,7 +262,7 @@ public abstract class BaseServer implements IServer {
             LOGGER.error("Continuous running endpoints failed: ", e);
         }
 
-        LOGGER.debug("Unexpected quit running endpoints failed");
+        LOGGER.info("Unexpected quit running endpoints failed");
     }
 
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {

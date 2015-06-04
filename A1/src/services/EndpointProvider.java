@@ -15,14 +15,17 @@ public class EndpointProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointProvider.class.getName());
 
     public void serveManagementEndpoint(ServerDescription description, final A1Management.Iface handler) {
-        LOGGER.debug("Serving management endpoint");
+        LOGGER.info("Serving management endpoint");
 
         A1Management.Processor processor = new A1Management.Processor<A1Management.Iface>(handler);
         try {
             // TODO: Choose an appropriate transport and protocol
             TServerSocket transport = new TServerSocket(description.getMport());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                    .processor(processor).maxWorkerThreads(Integer.MAX_VALUE));
+                    .processor(processor).maxWorkerThreads(5));
+
+            LOGGER.info("Can serve management endpoint");
+
             server.serve();
 
         } catch (TException te) {
@@ -30,24 +33,27 @@ public class EndpointProvider {
             LOGGER.error("Management endpoint error: ", te);
         }
 
-        LOGGER.debug("Stopped serving management endpoint");
+        LOGGER.info("Stopped serving management endpoint");
     }
 
     public void servePasswordEndpoint(ServerDescription description, final A1Password.Iface handler) {
-        LOGGER.debug("Serving password endpoint");
+        LOGGER.info("Serving password endpoint");
 
         A1Password.Processor processor = new A1Password.Processor<A1Password.Iface>(handler);
         try {
             TServerSocket transport = new TServerSocket(description.getPport());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(transport)
-                    .processor(processor).maxWorkerThreads(Integer.MAX_VALUE));
+                    .processor(processor).maxWorkerThreads(5));
+
+            LOGGER.info("Can serve password endpoint");
+
             server.serve();
         } catch (TException te) {
             // TODO: Handle exception
             LOGGER.error("Password endpoint error: ", te);
         }
 
-        LOGGER.debug("Stopped serving password endpoint");
+        LOGGER.info("Stopped serving password endpoint");
     }
 
 

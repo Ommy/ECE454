@@ -7,6 +7,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransportException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 public class JavaFEClient extends BaseClient {
@@ -22,24 +24,34 @@ public class JavaFEClient extends BaseClient {
         final ServerDescription description = parser.parse(args, ServerType.FE);
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(10);
+            ExecutorService executor = Executors.newFixedThreadPool(1);
 
             List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 5; i++) {
                 final int count = i;
                 workers.add(new Callable<Void>() {
                     @Override
-                    public Void call() throws Exception {
-                        TTransport transport = new TSocket(description.getHost(), description.getPport() + count);
-                        transport.open();
+                    public Void call() {
+                        TTransport transport = new TSocket(description.getHost(), description.getPport());
+                        try {
+                            transport.open();
+                        } catch (TTransportException e) {
+                            e.printStackTrace();
+                        }
                         TProtocol protocol = new TBinaryProtocol(transport);
                         A1Password.Client client = new A1Password.Client(protocol);
-                        for (int j = 0; j < 100; j++) {
-                            client.hashPassword("hunter2" + j, (short) (10));
-//                            System.out.println( + " index: " + j + " worker: " + count);
+                        for (int j = 0; j < 50; j++) {
+                            System.out.println("At index: " + j + " worker: " + count);
+                            String hashed = null;
+                            try {
+                                hashed = client.hashPassword("hunter2" + j, (short) (5));
+                            } catch (TException e) {
+                                e.printStackTrace();
+                            }
+                            System.out.println("Hashed: " + hashed);
                         }
                         transport.close();
+                        System.out.println("Completed");
                         return null;
                     }
                 });
@@ -47,9 +59,11 @@ public class JavaFEClient extends BaseClient {
 
             executor.invokeAll(workers);
 
+            System.out.println("Completed");
+
             TTransport transport = null;
-            for (int i = 0; i < 10; i++) {
-                transport = new TSocket(description.getHost(), description.getMport() + i);
+            for (int i = 0; i < 1; i++) {
+                transport = new TSocket(description.getHost(), description.getMport());
                 transport.open();
                 TProtocol protocol = new TBinaryProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);

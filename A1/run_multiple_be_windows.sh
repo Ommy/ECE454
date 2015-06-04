@@ -9,5 +9,5 @@ do
     echo "Password Port: $pport"
     echo "Management Port: $mport"
     echo "Number of Cores: $ncores"
-    (java -cp "dist/lib/ece454750s15a1.jar;lib/*" ece454750s15a1.BEServer -pport $pport -mport $mport -ncores $ncores -seeds localhost:6720,localhost:6721,localhost:6722 & )
+    (java -Xmx128m -cp "dist/lib/ece454750s15a1.jar;lib/*" ece454750s15a1.BEServer -pport $pport -mport $mport -ncores $ncores -seeds localhost:6720,localhost:6721,localhost:6722 & )
 done

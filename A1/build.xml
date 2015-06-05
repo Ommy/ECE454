@@ -6,7 +6,6 @@
   <property name="src" location="src"/>
   <property name="src-gen-java" location="gen-java"/>
   <property name="build" location="build"/>
-  <property name="dist" location="."/>
   <property name="lib" value="lib" />
   <property name="jar" value="ece454750s15a1.jar" />
 
@@ -57,8 +56,8 @@
   </target>
 
   <target name="clean" description="clean up" >
+    <delete file="${jar}"/>
     <delete dir="${build}"/>
     <delete dir="${src-gen-java}"/>
-    <delete file="${jar}"/>
   </target>
 </project>

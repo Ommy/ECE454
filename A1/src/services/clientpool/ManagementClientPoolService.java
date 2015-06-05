@@ -19,8 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ManagementClientPoolService extends BaseClientPoolService<A1Management.Client, A1Management.AsyncClient> implements IClientService<IManagementServiceRequest, IManagementServiceAsyncRequest> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ManagementClientPoolService.class.getName());
 
-    private HashMap<String, ConcurrentLinkedQueue<Client<A1Management.Client>>> clients;
-    private HashMap<String, ConcurrentLinkedQueue<AsyncClient<A1Management.AsyncClient>>> asyncClients;
+    private final HashMap<String, ConcurrentLinkedQueue<Client<A1Management.Client>>> clients;
 
     public final IServer myServer;
 
@@ -28,7 +27,6 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         myServer = server;
 
         clients = new HashMap<String, ConcurrentLinkedQueue<Client<A1Management.Client>>>();
-        asyncClients = new HashMap<String, ConcurrentLinkedQueue<AsyncClient<A1Management.AsyncClient>>>();
     }
 
     @Override
@@ -85,69 +83,15 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
     }
 
     @Override
-    public <T> T callOnceAsync(String host, int port, IManagementServiceAsyncRequest request) {
-        T result = null;
-        try {
-            LOGGER.debug("Calling with one time client connection");
-            initialize();
-
-            AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(host, port);
-            client.open();
-            result = request.perform(client.getClient());
-            client.close();
-
-            LOGGER.debug("Completed one time client connection");
-        } catch (TException te) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", te);
-        } catch (IOException e) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", e);
-        }
-        return result;
-    }
-
-    @Override
-    public <T> T callAsync(ServerDescription targetServer, IManagementServiceAsyncRequest request) {
-        T result = null;
-        try {
-            LOGGER.debug("Calling with one time client connection");
-            initialize();
-
-            AsyncClient<A1Management.AsyncClient> client = AsyncClient.Factory.createSimpleManagementClient(targetServer.getHost(), targetServer.getMport());
-            client.open();
-            result = request.perform(client.getClient());
-            client.close();
-
-            LOGGER.debug("Completed one time client connection");
-        } catch (TException te) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", te);
-            handleAsyncClientFailed(targetServer, asyncClients);
-            myServer.onConnectionFailed(targetServer);
-        } catch (IOException e) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", e);
-        }
-        return result;
-    }
-
-    @Override
     public void close() throws IOException {
         for (ConcurrentLinkedQueue<Client<A1Management.Client>> queue: clients.values()) {
             for (Client<A1Management.Client> client: queue) {
                 client.close();
             }
         }
-
-        for (ConcurrentLinkedQueue<AsyncClient<A1Management.AsyncClient>> queue: asyncClients.values()) {
-            for (AsyncClient<A1Management.AsyncClient> client: queue) {
-                client.close();
-            }
-        }
     }
 
-    protected Client<A1Management.Client> takeClient(ServerDescription server, String host, int port) throws TTransportException {
+    protected synchronized Client<A1Management.Client> takeClient(ServerDescription server, String host, int port) throws TTransportException {
         Client<A1Management.Client> client = null;
         if (!clients.containsKey(hash(server))) {
             client = Client.Factory.createSimpleManagementClient(host, port);
@@ -160,7 +104,7 @@ public class ManagementClientPoolService extends BaseClientPoolService<A1Managem
         return client;
     }
 
-    protected <T extends TServiceClient> void returnClient(ServerDescription server, Client<A1Management.Client> client) {
+    protected synchronized void returnClient(ServerDescription server, Client<A1Management.Client> client) {
         if (!clients.containsKey(hash(server))) {
             clients.put(hash(server), new ConcurrentLinkedQueue<Client<A1Management.Client>>());
         }

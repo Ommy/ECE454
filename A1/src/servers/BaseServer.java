@@ -17,8 +17,8 @@ public abstract class BaseServer implements IServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseServer.class.getName());
 
     private static final ServerDescriptionParser parser = new ServerDescriptionParser();
-    private final ServiceExecutor serviceExecutor;
 
+    private final ServiceExecutor serviceExecutor;
     private final ServerData myData;
     private final ServerDescription myDescription;
 
@@ -32,7 +32,6 @@ public abstract class BaseServer implements IServer {
         serviceExecutor = new ServiceExecutor(this);
         seedHosts = new LinkedList<String>();
         seedPorts = new LinkedList<Integer>();
-
 
         myDescription = parser.parse(args, type);
 
@@ -68,13 +67,13 @@ public abstract class BaseServer implements IServer {
             }
         }
 
-        LOGGER.info("Updated data for: " + myDescription.toString());
-        LOGGER.info("Online servers: " + myData.getOnlineServersSize());
+        LOGGER.debug("Updated data for: " + myDescription.toString());
+        LOGGER.debug("Online servers: " + myData.getOnlineServersSize());
     }
 
     @Override
     public synchronized void removeDownedService(ServerDescription server) {
-        LOGGER.info("Removing downed service " + server.toString());
+        LOGGER.debug("Removing downed service " + server.toString());
 
         List<ServerDescription> myOnline = myData.getOnlineServers();
         if (myOnline.contains(server)) {
@@ -83,7 +82,7 @@ public abstract class BaseServer implements IServer {
 
         myData.setOnlineServers(myOnline);
 
-        LOGGER.info("Successfully removed " + server.toString());
+        LOGGER.debug("Successfully removed " + server.toString());
     }
 
     @Override
@@ -128,6 +127,8 @@ public abstract class BaseServer implements IServer {
         } catch (ExecutionException e) {
             LOGGER.error("Executor threw an exception", e);
         }
+
+        executor.shutdown();
     }
 
     @Override
@@ -147,7 +148,7 @@ public abstract class BaseServer implements IServer {
             throw new IllegalArgumentException("Seed lists should never be empty");
         }
 
-        final ExecutorService executor = Executors.newFixedThreadPool(seedHosts.size());
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
         final List<Callable<Void>> workers = new LinkedList<Callable<Void>>();
         final IServer server = this;
 
@@ -168,21 +169,20 @@ public abstract class BaseServer implements IServer {
                             seedData = (ServerData)serviceExecutor.requestExecuteToServer(seedHost, seedPort, new IManagementServiceRequest() {
                                 @Override
                                 public ServerData perform(A1Management.Iface client) throws TException {
-                                    LOGGER.info("Exchanging server data for the first time to: " + seedHost + " : " + seedPort);
+                                    LOGGER.debug("Exchanging server data for the first time to: " + seedHost + " : " + seedPort);
                                     ServerData myData = getData();
 
-                                    LOGGER.info("Got my data");
-
+                                    LOGGER.debug("Got my data");
                                     ServerData theirData = client.exchangeServerData(myData);
 
-                                    LOGGER.info("Got their data");
+                                    LOGGER.debug("Got their data");
                                     return theirData;
                                 }
                             });
 
                             if (seedData != null) {
                                 isAnyCompleted.set(true);
-                                LOGGER.info(myDescription.toString() + ";  Completed Registration");
+                                LOGGER.debug(myDescription.toString() + ";  Completed Registration");
                             } else {
                                 Thread.sleep(200);
                                 LOGGER.error(myDescription.toString() + ";  Stuck in loop");
@@ -190,7 +190,7 @@ public abstract class BaseServer implements IServer {
                         }
 
                         if (seedData != null) {
-                            server.updateData(seedData);
+                            updateData(seedData);
                         }
 
                         LOGGER.info("Completed first registration handshake with seed");
@@ -210,68 +210,68 @@ public abstract class BaseServer implements IServer {
             }
         }
 
+        executor.shutdownNow();
+
         LOGGER.info("Completed registering with any endpoint");
     }
 
     private void initializeEndpoints(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
         LOGGER.info("Initializing endpoints");
 
+
         final EndpointProvider endpointProvider = new EndpointProvider();
-        final GossipService gossipService = new GossipService(this);
-
-        try {
-            // TODO: Do we need to run these on a new thread?
-            ExecutorService threadedExecutor = Executors.newFixedThreadPool(3);
-            List<Callable<Void>> servers = new LinkedList<Callable<Void>>();
-
-            final Callable<Void> managementRunnable = new Callable<Void>() {
-                @Override
-                public Void call() {
-                    endpointProvider.serveManagementEndpoint(myDescription, mHandler);
-                    return null;
-                }
-            };
-            servers.add(managementRunnable);
-
-            final Callable<Void> passwordRunnable = new Callable<Void>() {
-
-                @Override
-                public Void call() {
-                    if (myDescription.getType() == ServerType.BE) {
-                        endpointProvider.serveBEPasswordEndpoint(myDescription, pHandler);
-                    } else {
-                        endpointProvider.serveFEPasswordEndpoint(myDescription, pHandler);
-                    }
-                    return null;
-                }
-            };
-            servers.add(passwordRunnable);
-
-            final Callable<Void> gossipRunnable = new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    gossipService.gossip();
-                    return null;
-                }
-            };
-
-            if (myDescription.getType() != ServerType.BE) {
-                servers.add(gossipRunnable);
+        final ExecutorService threadedExecutor = Executors.newFixedThreadPool(2);
+        final Runnable managementRunnable = new Runnable() {
+            @Override
+            public void run() {
+                endpointProvider.serveManagementEndpoint(myDescription, mHandler);
             }
+        };
+        final Runnable passwordRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (myDescription.getType() == ServerType.BE) {
+                    endpointProvider.serveBEPasswordEndpoint(myDescription, pHandler);
+                } else {
+                    endpointProvider.serveFEPasswordEndpoint(myDescription, pHandler);
+                }
+            }
+        };
 
-            threadedExecutor.invokeAll(servers);
-
-        } catch (Exception e) {
-            // TODO: Handle exception
-            LOGGER.error("Continuous running endpoints failed: ", e);
-        }
-
-        LOGGER.error("Unexpected quit running endpoints failed");
+        threadedExecutor.execute(managementRunnable);
+        threadedExecutor.execute(passwordRunnable);
     }
+
+    private void beginGossip() {
+        final ScheduledExecutorService scheduledThreadPool;
+        if (myDescription.getType() == ServerType.FE) {
+            scheduledThreadPool = Executors.newScheduledThreadPool(1);
+            final GossipService gossipService = new GossipService(this);
+            final Runnable gossipRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        gossipService.gossip();
+                    } catch (ServiceUnavailableException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+            scheduledThreadPool.scheduleWithFixedDelay(gossipRunnable, 100, 100, TimeUnit.MILLISECONDS);
+        }
+    }
+
 
     protected void run(final A1Password.Iface pHandler, final A1Management.Iface mHandler) {
         registerWithSeedNodes();
         initializeEndpoints(pHandler, mHandler);
+        beginGossip();
+
+        LOGGER.info("Running...");
+
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        System.out.println("THREADS:::: " + threadSet.toString());
     }
 
     private boolean isSeedNode() {

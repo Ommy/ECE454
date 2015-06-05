@@ -31,14 +31,13 @@ public class EndpointProvider {
                     .processor(processor)
                     .transportFactory(framedTransportFactory)
                     .protocolFactory(compactProtocolFactory)
-                    .selectorThreads(2)
-                    .workerThreads(4)
+                    .selectorThreads(1)
+                    .workerThreads(2)
             );
 
             LOGGER.info("Can serve management endpoint");
 
             server.serve();
-
         } catch (TException te) {
             // TODO: Handle exception
             LOGGER.error("Management endpoint error: ", te);
@@ -80,12 +79,11 @@ public class EndpointProvider {
                     .processor(processor)
                     .transportFactory(framedTransportFactory)
                     .protocolFactory(compactProtocolFactory)
-                    .selectorThreads(2)
-                    .workerThreads(4)
+                    .selectorThreads(1)
+                    .workerThreads(2)
             );
 
             LOGGER.info("Can serve password endpoint");
-
             server.serve();
         } catch (TException te) {
             // TODO: Handle exception

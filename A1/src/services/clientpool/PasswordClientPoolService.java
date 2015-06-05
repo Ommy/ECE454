@@ -18,8 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PasswordClientPoolService extends BaseClientPoolService<A1Password.Client, A1Password.AsyncClient> implements IClientService<IPasswordServiceRequest, IPasswordServiceAsyncRequest> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordClientPoolService.class.getName());
 
-    private HashMap<String, ConcurrentLinkedQueue<Client<A1Password.Client>>> clients;
-    private HashMap<String, ConcurrentLinkedQueue<AsyncClient<A1Password.AsyncClient>>> asyncClients;
+    private final HashMap<String, ConcurrentLinkedQueue<Client<A1Password.Client>>> clients;
 
     public final IServer myServer;
 
@@ -27,7 +26,6 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         myServer = server;
 
         clients = new HashMap<String, ConcurrentLinkedQueue<Client<A1Password.Client>>>();
-        asyncClients = new HashMap<String, ConcurrentLinkedQueue<AsyncClient<A1Password.AsyncClient>>>();
     }
 
     @Override
@@ -74,68 +72,15 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
     }
 
     @Override
-    public <T> T callOnceAsync(String host, int port, IPasswordServiceAsyncRequest request) {
-        T result = null;
-        try {
-            LOGGER.debug("Calling with one time client connection");
-            initialize();
-
-            AsyncClient<A1Password.AsyncClient> client = AsyncClient.Factory.createSimplePasswordClient(host, port);
-            client.open();
-            result = request.perform(client.getClient());
-            client.close();
-
-            LOGGER.debug("Completed one time client connection");
-        } catch (TException te) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", te);
-        } catch (IOException e) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", e);
-        }
-        return result;
-    }
-
-    @Override
-    public <T> T callAsync(ServerDescription targetServer, IPasswordServiceAsyncRequest request) {
-        T result = null;
-        try {
-            LOGGER.debug("Calling with one time client connection");
-            initialize();
-
-            AsyncClient<A1Password.AsyncClient> client = AsyncClient.Factory.createSimplePasswordClient(targetServer.getHost(), targetServer.getPport());
-            client.open();
-            result = request.perform(client.getClient());
-            client.close();
-
-            LOGGER.debug("Completed one time client connection");
-        } catch (TException te) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", te);
-            handleAsyncClientFailed(targetServer, asyncClients);
-            myServer.onConnectionFailed(targetServer);
-        } catch (IOException e) {
-            // TODO: Handle errors
-            LOGGER.error("callOnce failed: ", e);
-        }
-        return result;
-    }
-
-    @Override
     public void close() throws IOException {
         for (ConcurrentLinkedQueue<Client<A1Password.Client>> queue: clients.values()) {
             for (Client<A1Password.Client> client: queue) {
                 client.close();
             }
         }
-        for (ConcurrentLinkedQueue<AsyncClient<A1Password.AsyncClient>> queue: asyncClients.values()) {
-            for (AsyncClient<A1Password.AsyncClient> client: queue) {
-                client.close();
-            }
-        }
     }
 
-    protected Client<A1Password.Client> takeClient(ServerDescription server, String host, int port) throws TTransportException {
+    protected synchronized Client<A1Password.Client> takeClient(ServerDescription server, String host, int port) throws TTransportException {
         Client<A1Password.Client> client = null;
         if (!clients.containsKey(hash(server))) {
             client = Client.Factory.createSimplePasswordClient(host, port);
@@ -148,7 +93,7 @@ public class PasswordClientPoolService extends BaseClientPoolService<A1Password.
         return client;
     }
 
-    protected void returnClient(ServerDescription server, Client<A1Password.Client> client) {
+    protected synchronized void returnClient(ServerDescription server, Client<A1Password.Client> client) {
         if (!clients.containsKey(hash(server))) {
             clients.put(hash(server), new ConcurrentLinkedQueue<Client<A1Password.Client>>());
         }

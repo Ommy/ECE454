@@ -26,12 +26,12 @@ public class JavaFEClient extends BaseClient {
             ExecutorService executor = Executors.newFixedThreadPool(2);
 
             List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-            for (int i = 0; i < 10; i++) {
-                final int count = i;
+            for (int i = 1; i < 6; i++) {
+                final int count = i * 10000;
                 workers.add(new Callable<Void>() {
                     @Override
                     public Void call() {
-                        TTransport transport = new TSocket(description.getHost(), description.getPport());
+                        TTransport transport = new TSocket(description.getHost(), description.getPport() + count);
 
                         try {
                             transport.open();
@@ -62,8 +62,8 @@ public class JavaFEClient extends BaseClient {
             System.out.println("Completed");
 
             TTransport transport = null;
-            for (int i = 0; i < 1; i++) {
-                transport = new TFramedTransport(new TSocket(description.getHost(), description.getMport()));
+            for (int i = 1; i < 6; i++) {
+                transport = new TFramedTransport(new TSocket(description.getHost(), description.getMport() + 10000*i));
                 transport.open();
                 TProtocol protocol = new TCompactProtocol(transport);
                 A1Management.Client client1 = new A1Management.Client(protocol);

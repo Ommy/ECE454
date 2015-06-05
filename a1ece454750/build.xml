@@ -6,7 +6,7 @@
   <property name="src" location="src"/>
   <property name="src-gen-java" location="gen-java"/>
   <property name="build" location="build"/>
-  <property name="lib" value="lib" />
+  <property name="lib" value="../lib" />
   <property name="jar" value="ece454750s15a1.jar" />
 
   <path id="libs.classpath">
@@ -30,6 +30,7 @@
   </target>
 
   <target name="generate" description="generate thrift files" >
+    <delete dir="${src-gen-java}"/>
     <exec executable="/usr/bin/thrift">
       <arg value="--gen" />
       <arg value="java" />

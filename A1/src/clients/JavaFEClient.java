@@ -26,7 +26,7 @@ public class JavaFEClient extends BaseClient {
             ExecutorService executor = Executors.newFixedThreadPool(2);
 
             List<Callable<Void>> workers = new ArrayList<Callable<Void>>();
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 10; i++) {
                 final int count = i;
                 workers.add(new Callable<Void>() {
                     @Override
@@ -40,7 +40,7 @@ public class JavaFEClient extends BaseClient {
                         }
                         TProtocol protocol = new TCompactProtocol(transport);
                         A1Password.Client client = new A1Password.Client(protocol);
-                        for (int j = 0; j < 50; j++) {
+                        for (int j = 0; j < 100; j++) {
                             System.out.println("At index: " + j + " worker: " + count);
                             String hashed = null;
                             try {

@@ -6,7 +6,7 @@
   <property name="src" location="src"/>
   <property name="src-gen-java" location="gen-java"/>
   <property name="build" location="build"/>
-  <property name="dist" location="dist/lib"/>
+  <property name="dist" location="."/>
   <property name="lib" value="lib" />
   <property name="jar" value="ece454750s15a1.jar" />
 
@@ -16,19 +16,9 @@
     </fileset>
   </path>
 
-  <path id="run.classpath">
-    <fileset dir="${lib}">
-      <include name="**/*.jar"/>
-    </fileset>
-    <fileset dir="${dist}">
-      <include name="**/*.jar"/>
-    </fileset>
-  </path>
-
-  <target name="init">
+  <target name="init" depends="generate">
     <tstamp/>
     <mkdir dir="${build}"/>
-    <mkdir dir="${dist}"/>
   </target>
 
   <target name="compile" depends="init" description="compile the source" >
@@ -37,16 +27,16 @@
   </target>
 
   <target name="dist" depends="compile" description="generate the jar" >
-    <jar jarfile="${dist}/${jar}" basedir="${build}"/>
+    <jar jarfile="${jar}" basedir="${build}"/>
   </target>
 
   <target name="generate" description="generate thrift files" >
-    <exec executable="/usr/local/bin/thrift">
+    <exec executable="/usr/bin/thrift">
       <arg value="--gen" />
       <arg value="java" />
       <arg value="${src}/password.thrift" />
     </exec>
-    <exec executable="/usr/local/bin/thrift">
+    <exec executable="/usr/bin/thrift">
       <arg value="--gen" />
       <arg value="java" />
       <arg value="${src}/management.thrift" />
@@ -66,14 +56,9 @@
     </exec>
   </target>
 
-  <target name="run-fe" depends="dist">
-    <parallel>
-      <java classname="ece454750s15a1.FEServer" timeout="10000" classpathref="run.classpath" failonerror="true" />
-    </parallel>
-  </target>
-
   <target name="clean" description="clean up" >
     <delete dir="${build}"/>
-    <delete dir="${dist}"/>
+    <delete dir="${src-gen-java}"/>
+    <delete file="${jar}"/>
   </target>
 </project>

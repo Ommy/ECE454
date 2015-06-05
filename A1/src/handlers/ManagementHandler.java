@@ -52,11 +52,11 @@ public class ManagementHandler extends BaseHandler implements A1Management.Iface
 
     @Override
     public ServerData getServerData() throws TException {
-        return myServer.getData();
+        return new ServerData(myServer.getData());
     }
 
     @Override
     public ServerDescription getServerDescription() throws TException {
-        return myServer.getDescription();
+        return new ServerDescription(myServer.getDescription());
     }
 }

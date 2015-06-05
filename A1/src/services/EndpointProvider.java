@@ -7,9 +7,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.server.TThreadedSelectorServer;
+import org.apache.thrift.server.*;
 import org.apache.thrift.transport.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +17,7 @@ public class EndpointProvider {
     private static TFramedTransport.Factory framedTransportFactory = new TFramedTransport.Factory();
     private static TCompactProtocol.Factory compactProtocolFactory = new TCompactProtocol.Factory();
 
-    public void serveManagementEndpoint(ServerDescription description, final A1Management.Iface handler) {
+    public void serveFEManagementEndpoint(ServerDescription description, final A1Management.Iface handler) {
         LOGGER.info("Serving management endpoint");
 
         A1Management.Processor processor = new A1Management.Processor<A1Management.Iface>(handler);
@@ -31,8 +29,33 @@ public class EndpointProvider {
                     .processor(processor)
                     .transportFactory(framedTransportFactory)
                     .protocolFactory(compactProtocolFactory)
-                    .selectorThreads(1)
+                    .selectorThreads(2)
                     .workerThreads(2)
+            );
+
+            LOGGER.info("Can serve management endpoint");
+
+            server.serve();
+        } catch (TException te) {
+            // TODO: Handle exception
+            LOGGER.error("Management endpoint error: ", te);
+        }
+
+        LOGGER.info("Stopped serving management endpoint");
+    }
+
+    public void serveBEManagementEndpoint(ServerDescription description, final A1Management.Iface handler) {
+        LOGGER.info("Serving management endpoint");
+
+        A1Management.Processor processor = new A1Management.Processor<A1Management.Iface>(handler);
+        try {
+            // TODO: Choose an appropriate transport and protocol
+
+            TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getMport());
+            TNonblockingServer server = new TNonblockingServer(new TNonblockingServer.Args(transport)
+                    .processor(processor)
+                    .transportFactory(framedTransportFactory)
+                    .protocolFactory(compactProtocolFactory)
             );
 
             LOGGER.info("Can serve management endpoint");
@@ -75,12 +98,11 @@ public class EndpointProvider {
         A1Password.Processor processor = new A1Password.Processor<A1Password.Iface>(handler);
         try {
             TNonblockingServerTransport transport = new TNonblockingServerSocket(description.getPport());
-            TThreadedSelectorServer server = new TThreadedSelectorServer(new TThreadedSelectorServer.Args(transport)
+            THsHaServer server = new THsHaServer(new THsHaServer.Args(transport)
                     .processor(processor)
                     .transportFactory(framedTransportFactory)
                     .protocolFactory(compactProtocolFactory)
-                    .selectorThreads(1)
-                    .workerThreads(2)
+                    .workerThreads(description.getNcores())
             );
 
             LOGGER.info("Can serve password endpoint");

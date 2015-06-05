@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export JAVA_TOOL_OPTIONS=-Xmx512m
+export JAVA_TOOL_OPTIONS='-Xmx4g -Xss4m'
 
 echo "Spawning 20 BE nodes"
 

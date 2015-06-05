@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-export JAVA_TOOL_OPTIONS='-Xmx128m -Xss2m'
+export JAVA_TOOL_OPTIONS='-Xmx4g -Xss4m'
 
 echo "Spawning 10 FE clients"
 
-for i in `seq 1 2` ;
+for i in `seq 1 1` ;
 do
     pport=$((i*10000+6720))
     mport=$((i*10000+4850))

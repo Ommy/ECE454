@@ -75,12 +75,10 @@ public abstract class BaseServer implements IServer {
     public synchronized void removeDownedService(ServerDescription server) {
         LOGGER.debug("Removing downed service " + server.toString());
 
-        List<ServerDescription> myOnline = myData.getOnlineServers();
+        final List<ServerDescription> myOnline = myData.getOnlineServers();
         if (myOnline.contains(server)) {
             myOnline.remove(server);
         }
-
-        myData.setOnlineServers(myOnline);
 
         LOGGER.debug("Successfully removed " + server.toString());
     }
@@ -98,13 +96,12 @@ public abstract class BaseServer implements IServer {
             myOnline.remove(myDescription);
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(myOnline.size());
-        final List<Callable<Void>> workers = new LinkedList<Callable<Void>>();
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
         for (final ServerDescription online : myOnline) {
             if (online.getType() == ServerType.FE) {
-                workers.add(new Callable<Void>() {
+                executor.execute(new Runnable() {
                     @Override
-                    public Void call() throws Exception {
+                    public void run() {
                         serviceExecutor.requestExecuteToServer(online, new IManagementServiceRequest() {
                             @Override
                             public Void perform(A1Management.Iface client) throws TException {
@@ -112,20 +109,9 @@ public abstract class BaseServer implements IServer {
                                 return null;
                             }
                         });
-                        return null;
                     }
                 });
             }
-        }
-
-        try {
-            if (!workers.isEmpty()) {
-                executor.invokeAny(workers);
-            }
-        } catch (InterruptedException ie) {
-            LOGGER.error("Executor threw an exception", ie);
-        } catch (ExecutionException e) {
-            LOGGER.error("Executor threw an exception", e);
         }
 
         executor.shutdown();
@@ -148,12 +134,10 @@ public abstract class BaseServer implements IServer {
             throw new IllegalArgumentException("Seed lists should never be empty");
         }
 
-        final ExecutorService executor = Executors.newFixedThreadPool(2);
         final List<Callable<Void>> workers = new LinkedList<Callable<Void>>();
-        final IServer server = this;
-
         final AtomicBoolean isAnyCompleted = new AtomicBoolean(false);
 
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
         for (int i = 0; i < seedHosts.size(); ++i) {
             final String seedHost = seedHosts.get(i);
             final int seedPort = seedPorts.get(i);
@@ -224,7 +208,11 @@ public abstract class BaseServer implements IServer {
         final Runnable managementRunnable = new Runnable() {
             @Override
             public void run() {
-                endpointProvider.serveManagementEndpoint(myDescription, mHandler);
+                if (myDescription.getType() == ServerType.BE) {
+                    endpointProvider.serveBEManagementEndpoint(myDescription, mHandler);
+                } else {
+                    endpointProvider.serveFEManagementEndpoint(myDescription, mHandler);
+                }
             }
         };
         final Runnable passwordRunnable = new Runnable() {
@@ -253,7 +241,7 @@ public abstract class BaseServer implements IServer {
                     try {
                         gossipService.gossip();
                     } catch (ServiceUnavailableException e) {
-                        e.printStackTrace();
+                        // just idle if there are no servers to gossip with
                     }
                 }
             };

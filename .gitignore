@@ -20,3 +20,4 @@ hs_err_pid*
 
 # Sublime
 *.sublime-workspace
+*.sublime-project

@@ -13,6 +13,7 @@ hs_err_pid*
 
 .vagrant
 .DS_Store
+Thumbs.db
 
 # IntelliJ
 .idea

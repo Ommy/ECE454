@@ -46,15 +46,11 @@ public class TriangleCountImpl {
 
         HashMap<Integer, Set<Integer>> edges = new HashMap<Integer, Set<Integer>>();
 
-        System.out.println("Starting: " + triangles.size());
-
         for (int nodeA = 0; nodeA < numVertices; nodeA++) {
             ArrayList<Integer> nodesB = adjacencyList.get(nodeA);
             Set<Integer> nodesBSet = new HashSet<Integer>(nodesB);
             edges.put(nodeA, nodesBSet);
         }
-
-        System.out.println("Number of triangles currently found: " + triangles.size());
 
         for (int nodeA = 0; nodeA < numVertices; nodeA++) {
             Set<Integer> nodesBSet = edges.get(nodeA);
@@ -65,10 +61,10 @@ public class TriangleCountImpl {
                             triangles.add(new Triangle(nodeB, nodeA, nodeC));
                         }
                     }
+                } else {
+                    break;
                 }
             }
-
-            System.out.println("Number of triangles currently found: " + triangles.size());
         }
 
         System.out.println("Number of triangles found: " + triangles.size());

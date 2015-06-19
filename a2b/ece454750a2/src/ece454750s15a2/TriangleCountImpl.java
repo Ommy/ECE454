@@ -53,16 +53,17 @@ public class TriangleCountImpl {
         }
 
         for (int nodeA = 0; nodeA < numVertices; nodeA++) {
-            Set<Integer> nodesBSet = edges.get(nodeA);
+            final Set<Integer> nodesBSet = edges.get(nodeA);
             for (int nodeB : nodesBSet) {
-                if (nodeB < nodeA) {
+                if (nodeA > nodeB) {
+                    final Set<Integer> nodeBSet = edges.get(nodeB);w
                     for (int nodeC : nodesBSet) {
-                        if (nodeA < nodeC && edges.get(nodeB).contains(nodeC)) {
-                            triangles.add(new Triangle(nodeB, nodeA, nodeC));
+                        if (nodeA < nodeC) {
+                            if (nodeBSet.contains(nodeC)) {
+                                triangles.add(new Triangle(nodeB, nodeA, nodeC));
+                            }
                         }
                     }
-                } else {
-                    break;
                 }
             }
         }
@@ -93,6 +94,9 @@ public class TriangleCountImpl {
                 }
             }
         }
+
+        System.out.println("Number of triangles found: " + ret.size());
+
         return ret;
     }
 

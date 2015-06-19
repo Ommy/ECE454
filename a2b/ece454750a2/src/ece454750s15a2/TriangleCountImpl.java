@@ -22,9 +22,7 @@ public class TriangleCountImpl {
     }
 
     public List<String> getGroupMembers() {
-	    ArrayList<String> ret = new ArrayList<String>();
-	    ret.add("wgolab");
-	    return ret;
+        return new ArrayList<String>(Arrays.asList("aemorais", "faawan", "v6lai"));
     }
 
     public List<Triangle> enumerateTriangles() throws IOException {

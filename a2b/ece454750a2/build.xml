@@ -13,7 +13,7 @@
     <pathelement path="${build}" />
     <pathelement path="a2.jar" />
   </path>
-  
+
   <target name="init">
     <tstamp />
     <mkdir dir="${build}"/>
@@ -39,7 +39,6 @@
 
   <target name="clean">
     <delete dir="${build}" />
-    <delete dir="${gen}"/>
     <delete file="a2.jar" />
     <delete file="output.txt" />
     <delete file="ece454750a2.tar.gz" />

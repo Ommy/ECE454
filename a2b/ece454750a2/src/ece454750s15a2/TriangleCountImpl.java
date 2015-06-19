@@ -39,26 +39,41 @@ public class TriangleCountImpl {
 
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
 
-        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
-        ArrayList<Triangle> ret = new ArrayList<Triangle>();
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
-        // naive triangle counting algorithm
+        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
         int numVertices = adjacencyList.size();
-        for (int i = 0; i < numVertices; i++) {
-            ArrayList<Integer> n1 = adjacencyList.get(i);
-            for (int j: n1) {
-                ArrayList<Integer> n2 = adjacencyList.get(j);
-                for (int k: n2) {
-                    ArrayList<Integer> n3 = adjacencyList.get(k);
-                    for (int l: n3) {
-                        if (i < j && j < k && l == i) {
-                            ret.add(new Triangle(i, j, k));
+
+        HashMap<Integer, Set<Integer>> edges = new HashMap<Integer, Set<Integer>>();
+
+        System.out.println("Starting: " + triangles.size());
+
+        for (int nodeA = 0; nodeA < numVertices; nodeA++) {
+            ArrayList<Integer> nodesB = adjacencyList.get(nodeA);
+            Set<Integer> nodesBSet = new HashSet<Integer>(nodesB);
+            edges.put(nodeA, nodesBSet);
+        }
+
+        System.out.println("Number of triangles currently found: " + triangles.size());
+
+        for (int nodeA = 0; nodeA < numVertices; nodeA++) {
+            Set<Integer> nodesBSet = edges.get(nodeA);
+            for (int nodeB : nodesBSet) {
+                if (nodeB < nodeA) {
+                    for (int nodeC : nodesBSet) {
+                        if (nodeA < nodeC && edges.get(nodeB).contains(nodeC)) {
+                            triangles.add(new Triangle(nodeB, nodeA, nodeC));
                         }
                     }
                 }
             }
+
+            System.out.println("Number of triangles currently found: " + triangles.size());
         }
-        return ret;
+
+        System.out.println("Number of triangles found: " + triangles.size());
+
+        return triangles;
     }
 
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {

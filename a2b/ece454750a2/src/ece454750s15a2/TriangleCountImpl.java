@@ -26,7 +26,42 @@ public class TriangleCountImpl {
     }
 
     public List<Triangle> enumerateTriangles() throws IOException {
-        // this code is single-threaded and ignores numCores
+
+        List<Triangle> triangles = null;
+        if (numCores == 1) {
+            triangles = enumerateTrianglesSingleThreaded();
+        } else {
+            triangles = enumerateTrianglesMultiThreaded();
+        }
+
+        return triangles;
+    }
+
+    private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
+
+        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
+        ArrayList<Triangle> ret = new ArrayList<Triangle>();
+
+        // naive triangle counting algorithm
+        int numVertices = adjacencyList.size();
+        for (int i = 0; i < numVertices; i++) {
+            ArrayList<Integer> n1 = adjacencyList.get(i);
+            for (int j: n1) {
+                ArrayList<Integer> n2 = adjacencyList.get(j);
+                for (int k: n2) {
+                    ArrayList<Integer> n3 = adjacencyList.get(k);
+                    for (int l: n3) {
+                        if (i < j && j < k && l == i) {
+                            ret.add(new Triangle(i, j, k));
+                        }
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
 
         ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
         ArrayList<Triangle> ret = new ArrayList<Triangle>();

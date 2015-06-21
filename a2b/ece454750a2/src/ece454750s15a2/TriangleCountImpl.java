@@ -38,35 +38,50 @@ public class TriangleCountImpl {
     }
 
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
+        InputStream istream = new ByteArrayInputStream(input);
+        BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+        String strLine = br.readLine();
+        if (!strLine.contains("vertices") || !strLine.contains("edges")) {
+            System.err.println("Invalid graph file format. Offending line: " + strLine);
+            System.exit(-1);
+        }
 
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-
-        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
-        int numVertices = adjacencyList.size();
+        String parts[] = strLine.split(", ");
+        int numVertices = Integer.parseInt(parts[0].split(" ")[0]);
+        int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
+        System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
 
         HashMap<Integer, ArrayList<Integer>> smallerEdges = new HashMap<Integer, ArrayList<Integer>>();
         HashMap<Integer, ArrayList<Integer>> biggerEdges = new HashMap<Integer, ArrayList<Integer>>();
         HashMap<Integer, Set<Integer>> allEdges = new HashMap<Integer, Set<Integer>>();
 
-        for (int vertex = 0; vertex < numVertices; vertex++) {
-            ArrayList<Integer> edges = adjacencyList.get(vertex);
+        while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
+            parts = strLine.split(": ");
+            Integer vertex = Integer.parseInt(parts[0]);
+
+            Set<Integer> tempEdges = new HashSet<Integer>();
             ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
             ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
 
-            int numEdges = edges.size();
-            for (int edgeIndex = 0; edgeIndex < numEdges; edgeIndex++) {
-                int edgeValue = edges.get(edgeIndex);
-                if (edgeValue < vertex) {
-                    tempSmallEdges.add(edgeValue);
-                } else {
-                    tempBigEdges.add(edgeValue);
+            if (parts.length > 1) {
+                parts = parts[1].split(" +");
+                for (String part: parts) {
+                    Integer edge = Integer.parseInt(part);
+                    if (edge < vertex) {
+                        tempSmallEdges.add(edge);
+                    } else {
+                        tempBigEdges.add(edge);
+                    }
+                    tempEdges.add(edge);
                 }
             }
             smallerEdges.put(vertex, tempSmallEdges);
             biggerEdges.put(vertex, tempBigEdges);
-            final Set<Integer> tempEdges = new LinkedHashSet<Integer>(edges);
             allEdges.put(vertex, tempEdges);
         }
+        br.close();
+
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
         for (int vertex = 0; vertex < numVertices; vertex++) {
             for (int smallVertex : smallerEdges.get(vertex)) {
@@ -85,60 +100,28 @@ public class TriangleCountImpl {
 
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
 
-        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
+        // ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
         ArrayList<Triangle> ret = new ArrayList<Triangle>();
 
-        // naive triangle counting algorithm
-        int numVertices = adjacencyList.size();
-        for (int i = 0; i < numVertices; i++) {
-            ArrayList<Integer> n1 = adjacencyList.get(i);
-            for (int j: n1) {
-                ArrayList<Integer> n2 = adjacencyList.get(j);
-                for (int k: n2) {
-                    ArrayList<Integer> n3 = adjacencyList.get(k);
-                    for (int l: n3) {
-                        if (i < j && j < k && l == i) {
-                            ret.add(new Triangle(i, j, k));
-                        }
-                    }
-                }
-            }
-        }
+        // // naive triangle counting algorithm
+        // int numVertices = adjacencyList.size();
+        // for (int i = 0; i < numVertices; i++) {
+        //     ArrayList<Integer> n1 = adjacencyList.get(i);
+        //     for (int j: n1) {
+        //         ArrayList<Integer> n2 = adjacencyList.get(j);
+        //         for (int k: n2) {
+        //             ArrayList<Integer> n3 = adjacencyList.get(k);
+        //             for (int l: n3) {
+        //                 if (i < j && j < k && l == i) {
+        //                     ret.add(new Triangle(i, j, k));
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        System.out.println("Number of triangles found: " + ret.size());
+        // System.out.println("Number of triangles found: " + ret.size());
 
         return ret;
-    }
-
-    public ArrayList<ArrayList<Integer>> getAdjacencyList(byte[] data) throws IOException {
-        InputStream istream = new ByteArrayInputStream(data);
-        BufferedReader br = new BufferedReader(new InputStreamReader(istream));
-        String strLine = br.readLine();
-        if (!strLine.contains("vertices") || !strLine.contains("edges")) {
-            System.err.println("Invalid graph file format. Offending line: " + strLine);
-            System.exit(-1);
-        }
-
-        String parts[] = strLine.split(", ");
-        int numVertices = Integer.parseInt(parts[0].split(" ")[0]);
-        int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
-        System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
-
-        ArrayList<ArrayList<Integer>> adjacencyList = new ArrayList<ArrayList<Integer>>(numVertices);
-        for (int i = 0; i < numVertices; i++) {
-            adjacencyList.add(new ArrayList<Integer>());
-        }
-        while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
-            parts = strLine.split(": ");
-            int vertex = Integer.parseInt(parts[0]);
-            if (parts.length > 1) {
-                parts = parts[1].split(" +");
-                for (String part: parts) {
-                    adjacencyList.get(vertex).add(Integer.parseInt(part));
-                }
-            }
-        }
-        br.close();
-        return adjacencyList;
     }
 }

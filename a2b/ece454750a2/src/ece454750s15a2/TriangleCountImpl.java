@@ -38,70 +38,7 @@ public class TriangleCountImpl {
     }
 
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
-
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-
-        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
-        int numVertices = adjacencyList.size();
-
-        HashMap<Integer, Set<Integer>> edges = new HashMap<Integer, Set<Integer>>();
-
-        for (int nodeA = 0; nodeA < numVertices; nodeA++) {
-            ArrayList<Integer> nodesB = adjacencyList.get(nodeA);
-            Set<Integer> nodesBSet = new HashSet<Integer>(nodesB);
-            edges.put(nodeA, nodesBSet);
-        }
-
-        for (int nodeA = 0; nodeA < numVertices; nodeA++) {
-            final Set<Integer> nodesBSet = edges.get(nodeA);
-            for (int nodeB : nodesBSet) {
-                if (nodeA > nodeB) {
-                    final Set<Integer> nodeBSet = edges.get(nodeB);w
-                    for (int nodeC : nodesBSet) {
-                        if (nodeA < nodeC) {
-                            if (nodeBSet.contains(nodeC)) {
-                                triangles.add(new Triangle(nodeB, nodeA, nodeC));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        System.out.println("Number of triangles found: " + triangles.size());
-
-        return triangles;
-    }
-
-    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
-
-        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
-        ArrayList<Triangle> ret = new ArrayList<Triangle>();
-
-        // naive triangle counting algorithm
-        int numVertices = adjacencyList.size();
-        for (int i = 0; i < numVertices; i++) {
-            ArrayList<Integer> n1 = adjacencyList.get(i);
-            for (int j: n1) {
-                ArrayList<Integer> n2 = adjacencyList.get(j);
-                for (int k: n2) {
-                    ArrayList<Integer> n3 = adjacencyList.get(k);
-                    for (int l: n3) {
-                        if (i < j && j < k && l == i) {
-                            ret.add(new Triangle(i, j, k));
-                        }
-                    }
-                }
-            }
-        }
-
-        System.out.println("Number of triangles found: " + ret.size());
-
-        return ret;
-    }
-
-    public ArrayList<ArrayList<Integer>> getAdjacencyList(byte[] data) throws IOException {
-        InputStream istream = new ByteArrayInputStream(data);
+        InputStream istream = new ByteArrayInputStream(input);
         BufferedReader br = new BufferedReader(new InputStreamReader(istream));
         String strLine = br.readLine();
         if (!strLine.contains("vertices") || !strLine.contains("edges")) {
@@ -114,21 +51,77 @@ public class TriangleCountImpl {
         int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
         System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
 
-        ArrayList<ArrayList<Integer>> adjacencyList = new ArrayList<ArrayList<Integer>>(numVertices);
-        for (int i = 0; i < numVertices; i++) {
-            adjacencyList.add(new ArrayList<Integer>());
-        }
+        HashMap<Integer, ArrayList<Integer>> smallerEdges = new HashMap<Integer, ArrayList<Integer>>();
+        HashMap<Integer, ArrayList<Integer>> biggerEdges = new HashMap<Integer, ArrayList<Integer>>();
+        HashMap<Integer, Set<Integer>> allEdges = new HashMap<Integer, Set<Integer>>();
+
         while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
             parts = strLine.split(": ");
-            int vertex = Integer.parseInt(parts[0]);
+            Integer vertex = Integer.parseInt(parts[0]);
+
+            Set<Integer> tempEdges = new HashSet<Integer>();
+            ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
+            ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+
             if (parts.length > 1) {
                 parts = parts[1].split(" +");
                 for (String part: parts) {
-                    adjacencyList.get(vertex).add(Integer.parseInt(part));
+                    Integer edge = Integer.parseInt(part);
+                    if (edge < vertex) {
+                        tempSmallEdges.add(edge);
+                    } else {
+                        tempBigEdges.add(edge);
+                    }
+                    tempEdges.add(edge);
+                }
+            }
+            smallerEdges.put(vertex, tempSmallEdges);
+            biggerEdges.put(vertex, tempBigEdges);
+            allEdges.put(vertex, tempEdges);
+        }
+        br.close();
+
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+
+        for (int vertex = 0; vertex < numVertices; vertex++) {
+            for (int smallVertex : smallerEdges.get(vertex)) {
+                for (int bigVertex : biggerEdges.get(vertex)) {
+                    if (allEdges.get(smallVertex).contains(bigVertex)) {
+                        triangles.add(new Triangle(smallVertex, vertex, bigVertex));
+                    }
                 }
             }
         }
-        br.close();
-        return adjacencyList;
+
+        System.out.println("Number of triangles found: " + triangles.size());
+
+        return triangles;
+    }
+
+    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
+
+        // ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
+        ArrayList<Triangle> ret = new ArrayList<Triangle>();
+
+        // // naive triangle counting algorithm
+        // int numVertices = adjacencyList.size();
+        // for (int i = 0; i < numVertices; i++) {
+        //     ArrayList<Integer> n1 = adjacencyList.get(i);
+        //     for (int j: n1) {
+        //         ArrayList<Integer> n2 = adjacencyList.get(j);
+        //         for (int k: n2) {
+        //             ArrayList<Integer> n3 = adjacencyList.get(k);
+        //             for (int l: n3) {
+        //                 if (i < j && j < k && l == i) {
+        //                     ret.add(new Triangle(i, j, k));
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
+        // System.out.println("Number of triangles found: " + ret.size());
+
+        return ret;
     }
 }

@@ -44,25 +44,35 @@ public class TriangleCountImpl {
         ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
         int numVertices = adjacencyList.size();
 
-        HashMap<Integer, Set<Integer>> edges = new HashMap<Integer, Set<Integer>>();
+        HashMap<Integer, ArrayList<Integer>> smallerEdges = new HashMap<Integer, ArrayList<Integer>>();
+        HashMap<Integer, ArrayList<Integer>> biggerEdges = new HashMap<Integer, ArrayList<Integer>>();
+        HashMap<Integer, Set<Integer>> allEdges = new HashMap<Integer, Set<Integer>>();
 
-        for (int nodeA = 0; nodeA < numVertices; nodeA++) {
-            ArrayList<Integer> nodesB = adjacencyList.get(nodeA);
-            Set<Integer> nodesBSet = new HashSet<Integer>(nodesB);
-            edges.put(nodeA, nodesBSet);
+        for (int vertex = 0; vertex < numVertices; vertex++) {
+            ArrayList<Integer> edges = adjacencyList.get(vertex);
+            ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
+            ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+
+            int numEdges = edges.size();
+            for (int edgeIndex = 0; edgeIndex < numEdges; edgeIndex++) {
+                int edgeValue = edges.get(edgeIndex);
+                if (edgeValue < vertex) {
+                    tempSmallEdges.add(edgeValue);
+                } else {
+                    tempBigEdges.add(edgeValue);
+                }
+            }
+            smallerEdges.put(vertex, tempSmallEdges);
+            biggerEdges.put(vertex, tempBigEdges);
+            final Set<Integer> tempEdges = new LinkedHashSet<Integer>(edges);
+            allEdges.put(vertex, tempEdges);
         }
 
-        for (int nodeA = 0; nodeA < numVertices; nodeA++) {
-            final Set<Integer> nodesBSet = edges.get(nodeA);
-            for (int nodeB : nodesBSet) {
-                if (nodeA > nodeB) {
-                    final Set<Integer> nodeBSet = edges.get(nodeB);w
-                    for (int nodeC : nodesBSet) {
-                        if (nodeA < nodeC) {
-                            if (nodeBSet.contains(nodeC)) {
-                                triangles.add(new Triangle(nodeB, nodeA, nodeC));
-                            }
-                        }
+        for (int vertex = 0; vertex < numVertices; vertex++) {
+            for (int smallVertex : smallerEdges.get(vertex)) {
+                for (int bigVertex : biggerEdges.get(vertex)) {
+                    if (allEdges.get(smallVertex).contains(bigVertex)) {
+                        triangles.add(new Triangle(smallVertex, vertex, bigVertex));
                     }
                 }
             }

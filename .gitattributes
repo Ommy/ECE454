@@ -15,7 +15,7 @@
 *.jsp           text
 *.jspf          text
 *.properties    text
-*.sh            text
+*.sh            text eol=lf
 *.svg           text
 *.tld           text
 *.txt           text

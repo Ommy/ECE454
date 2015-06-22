@@ -1,4 +1,4 @@
-<project name="a2" default="a2" basedir=".">
+<project name="a2" default="a2-sample" basedir=".">
 
   <description>ECE 454 / 750 Assignment 2 Part B</description>
 
@@ -24,17 +24,56 @@
     <javac source="1.6" target="1.6" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="build.classpath" />
   </target>
 
-  <target name="test" depends="a2" />
+  <target name="test" depends="a2-sample" />
 
-  <target name="a2" description="Run the solution" depends="compile">
+  <target name="a2-sample" description="Run the solution" depends="compile">
     <jar jarfile="a2.jar" basedir="${build}"/>
     <sequential>
-      <echo>A2 test</echo>
+      <echo>A2 smoke</echo>
       <java classname="ece454750s15a2.TriangleCount"
             classpathref="a2.classpath" failonerror="true">
-        <arg line="-ncores 1 -if samplegraph.txt -of output.txt"/>
+        <arg line="-ncores 1 -if samplegraph.txt -of samplegraph.out"/>
       </java>
     </sequential>
+  </target>
+
+  <target name="a2" description="Run the solution with arguments" depends="compile">
+    <jar jarfile="a2.jar" basedir="${build}"/>
+    <sequential>
+      <echo>A2 test with arguments -ncores ${ncores} -if ${if} -of ${of}</echo>
+      <java classname="ece454750s15a2.TriangleCount"
+            classpathref="a2.classpath" failonerror="true">
+        <arg line="-ncores ${ncores} -if ${if} -of ${of}"/>
+      </java>
+    </sequential>
+  </target>
+
+  <target name="ncores-1">
+    <property name="ncores" value="1"/>
+  </target>
+
+  <target name="ncores-2">
+    <property name="ncores" value="2"/>
+  </target>
+
+  <target name="graph10K_A">
+    <property name="if" value="graph10K_A.txt"/>
+    <property name="of" value="graph10K_A.out"/>
+  </target>
+
+  <target name="graph100K_A">
+    <property name="if" value="graph100K_A.txt"/>
+    <property name="of" value="graph100K_A.out"/>
+  </target>
+
+  <target name="graph100K_B">
+    <property name="if" value="graph100K_B.txt"/>
+    <property name="of" value="graph100K_B.out"/>
+  </target>
+
+  <target name="graph100K_C">
+    <property name="if" value="graph100K_C.txt"/>
+    <property name="of" value="graph100K_C.out"/>
   </target>
 
   <target name="clean">

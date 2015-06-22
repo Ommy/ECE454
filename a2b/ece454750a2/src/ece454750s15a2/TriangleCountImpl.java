@@ -13,6 +13,8 @@ import java.io.*;
 import java.util.*;
 
 public class TriangleCountImpl {
+
+    private static final boolean debug = false;
     private byte[] input;
     private int numCores;
 
@@ -40,6 +42,7 @@ public class TriangleCountImpl {
     }
 
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
+
         InputStream istream = new ByteArrayInputStream(input);
         BufferedReader br = new BufferedReader(new InputStreamReader(istream));
 
@@ -73,7 +76,7 @@ public class TriangleCountImpl {
                 final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
 
                 if (parts.length > 1) {
-                    parts = parts[1].split(" +");
+                    parts = parts[1].split(" ");
                     for (String part: parts) {
                         final Integer edge = Integer.parseInt(part);
                         if (edge < vertex) {
@@ -110,29 +113,45 @@ public class TriangleCountImpl {
 
             for (int smallVertex : smallEdges) {
                 final List<Integer> bigEdges = biggerEdges.get(vertex);
-
-                long y = System.currentTimeMillis();
+                long y = 0;
+                if (debug) {
+                    y = System.currentTimeMillis();
+                }
 
                 for (int bigVertex : bigEdges) {
 
-                    long z = System.currentTimeMillis();
+                    long z = 0;
+                    if (debug) {
+                        z = System.currentTimeMillis();
+                    }
 
                     if (allEdges.get(smallVertex).contains(bigVertex)) {
 
-                        long w = System.currentTimeMillis();
+                        long w = 0;
+                        if (debug) {
+                            w = System.currentTimeMillis();
+                        }
 
                         triangles.add(new Triangle(smallVertex, vertex, bigVertex));
 
-                        timeD += System.currentTimeMillis() - w;
+                        if (debug) {
+                            timeD += System.currentTimeMillis() - w;
+                        }
                     }
 
-                    timeC += System.currentTimeMillis() - z;
+                    if (debug) {
+                        timeC += System.currentTimeMillis() - z;
+                    }
                 }
 
-                timeB += System.currentTimeMillis() - y;
+                if (debug) {
+                    timeB += System.currentTimeMillis() - y;
+                }
             }
 
-            timeA += System.currentTimeMillis() - x;
+            if (debug) {
+                timeA += System.currentTimeMillis() - x;
+            }
 
 //            String o = String.format("->    %d / %d", vertex, numVertices);
 //            System.out.println(o);
@@ -140,14 +159,15 @@ public class TriangleCountImpl {
 
         long finishTime = System.currentTimeMillis();
 
-        System.out.println("Triangle time  : " + (finishTime - parseTime));
-        System.out.println("Total time     : " + (finishTime - beginTime));
+        System.out.println("Triangle time  : " + (finishTime - parseTime) / 1000);
+        System.out.println("Total time     : " + (finishTime - beginTime) / 1000);
 
-
-        System.out.println("Triangle time A : " + timeA);
-        System.out.println("Triangle time B : " + timeB);
-        System.out.println("Triangle time C : " + timeC);
-        System.out.println("Triangle time D : " + timeD);
+        if (debug) {
+            System.out.println("Triangle time A : " + timeA);
+            System.out.println("Triangle time B : " + timeB);
+            System.out.println("Triangle time C : " + timeC);
+            System.out.println("Triangle time D : " + timeD);
+        }
 
         return triangles;
     }

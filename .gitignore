@@ -5,6 +5,7 @@
 
 # Package Files #
 A1/dist/lib/*.jar
+a2b/ece454750a2/*.jar
 *.war
 *.ear
 

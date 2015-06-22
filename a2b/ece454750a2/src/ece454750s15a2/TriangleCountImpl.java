@@ -27,6 +27,56 @@ public class TriangleCountImpl {
         return new ArrayList<String>(Arrays.asList("aemorais", "faawan", "v6lai"));
     }
 
+    private class GraphParameters {
+        public Integer numVertices;
+        public Integer numEdges;
+
+        public GraphParameters(int numVertices, int numEdges) {
+            this.numVertices = numVertices;
+            this.numEdges = numEdges;
+        }
+    }
+
+    private interface IParser {
+        void parse(final GraphParameters params, final BufferedReader br) throws IOException;
+    }
+
+    private GraphParameters readInput(IParser parser) {
+        final InputStream istream = new ByteArrayInputStream(input);
+        final BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+        GraphParameters params = null;
+
+        try {
+            String strLine = br.readLine();
+            String parts[] = strLine.split(", ");
+            String verticesParts[] = parts[0].split(" ");
+            String edgesParts[] = parts[1].split(" ");
+            int numVertices = Integer.parseInt(verticesParts[0]);
+            int numEdges = Integer.parseInt(edgesParts[0]);
+
+            if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
+                System.err.println("Invalid graph file format. Offending line: " + strLine);
+                System.exit(-1);
+            }
+
+            System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
+
+            params = new GraphParameters(numVertices, numEdges);
+            parser.parse(params, br);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return params;
+    }
+
+
     public List<Triangle> enumerateTriangles() throws IOException {
 
         List<Triangle> triangles = null;
@@ -43,58 +93,101 @@ public class TriangleCountImpl {
 
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
 
-        InputStream istream = new ByteArrayInputStream(input);
-        BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+        long beginTime = System.currentTimeMillis();
 
-        String strLine = br.readLine();
-        String parts[] = strLine.split(", ");
-        String verticesParts[] = parts[0].split(" ");
-        String edgesParts[] = parts[1].split(" ");
-        int numVertices = Integer.parseInt(verticesParts[0]);
-        int numEdges = Integer.parseInt(edgesParts[0]);
+        final ArrayList<ArrayList<Integer>> allEdges = new ArrayList<ArrayList<Integer>>();
 
-        if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
-            System.err.println("Invalid graph file format. Offending line: " + strLine);
-            System.exit(-1);
+        final GraphParameters params = readInput(new IParser() {
+            @Override
+            public void parse(final GraphParameters params, final BufferedReader br) throws IOException {
+
+                String parts[] = null;
+                String strLine = null;
+
+                while ((strLine = br.readLine()) != null && !strLine.equals("")) {
+                    parts = strLine.split(": ");
+
+                    final Integer vertex = Integer.parseInt(parts[0]);
+                    final ArrayList<Integer> edges = new ArrayList<Integer>();
+
+                    if (parts.length > 1) {
+                        parts = parts[1].split(" +");
+                        for (String part : parts) {
+                            final Integer edge = Integer.parseInt(part);
+                            edges.add(edge);
+                        }
+                    }
+
+                    allEdges.add(vertex, edges);
+                }
+            }
+        });
+
+        long parseTime = System.currentTimeMillis();
+        System.out.println("Parse time     : " + (parseTime - beginTime));
+
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+
+        // naive triangle counting algorithm
+        for (int i = 0; i < params.numVertices; i++) {
+            ArrayList<Integer> n1 = allEdges.get(i);
+            for (int j: n1) {
+                ArrayList<Integer> n2 = allEdges.get(j);
+                for (int k: n2) {
+                    ArrayList<Integer> n3 = allEdges.get(k);
+                    for (int l: n3) {
+                        if (i < j && j < k && l == i) {
+                            triangles.add(new Triangle(i, j, k));
+                        }
+                    }
+                }
+            }
         }
 
-        System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
+        return triangles;
+    }
+
+    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
+
+        long beginTime = System.currentTimeMillis();
 
         final ArrayList<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
         final ArrayList<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
         final ArrayList<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
 
-        long beginTime = System.currentTimeMillis();
+        final GraphParameters params = readInput(new IParser() {
+            @Override
+            public void parse(final GraphParameters params, final BufferedReader br) throws IOException {
 
-        try {
-            while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
-                parts = strLine.split(": ");
+                String parts[] = null;
+                String strLine = null;
 
-                final Integer vertex = Integer.parseInt(parts[0]);
-                final Set<Integer> tempEdges = new HashSet<Integer>();
-                final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
-                final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+                while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
+                    parts = strLine.split(": ");
 
-                if (parts.length > 1) {
-                    parts = parts[1].split(" ");
-                    for (String part: parts) {
-                        final Integer edge = Integer.parseInt(part);
-                        if (edge < vertex) {
-                            tempSmallEdges.add(edge);
-                        } else {
-                            tempBigEdges.add(edge);
+                    final Integer vertex = Integer.parseInt(parts[0]);
+                    final Set<Integer> tempEdges = new HashSet<Integer>();
+                    final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
+                    final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+
+                    if (parts.length > 1) {
+                        parts = parts[1].split(" ");
+                        for (String part: parts) {
+                            final Integer edge = Integer.parseInt(part);
+                            if (edge < vertex) {
+                                tempSmallEdges.add(edge);
+                            } else {
+                                tempBigEdges.add(edge);
+                            }
+                            tempEdges.add(edge);
                         }
-                        tempEdges.add(edge);
                     }
+                    smallerEdges.add(vertex, tempSmallEdges);
+                    biggerEdges.add(vertex, tempBigEdges);
+                    allEdges.add(vertex, tempEdges);
                 }
-                smallerEdges.add(vertex, tempSmallEdges);
-                biggerEdges.add(vertex, tempBigEdges);
-                allEdges.add(vertex, tempEdges);
             }
-        }
-        finally {
-            br.close();
-        }
+        });
 
         long parseTime = System.currentTimeMillis();
         System.out.println("Parse time     : " + (parseTime - beginTime));
@@ -106,13 +199,14 @@ public class TriangleCountImpl {
 
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
-        for (int vertex = 0; vertex < numVertices; vertex++) {
+        for (int vertex = 0; vertex < params.numVertices; vertex++) {
             final List<Integer> smallEdges = smallerEdges.get(vertex);
 
             long x = System.currentTimeMillis();
 
             for (int smallVertex : smallEdges) {
                 final List<Integer> bigEdges = biggerEdges.get(vertex);
+
                 long y = 0;
                 if (debug) {
                     y = System.currentTimeMillis();
@@ -152,9 +246,6 @@ public class TriangleCountImpl {
             if (debug) {
                 timeA += System.currentTimeMillis() - x;
             }
-
-//            String o = String.format("->    %d / %d", vertex, numVertices);
-//            System.out.println(o);
         }
 
         long finishTime = System.currentTimeMillis();
@@ -172,72 +263,4 @@ public class TriangleCountImpl {
         return triangles;
     }
 
-    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
-
-        InputStream istream = new ByteArrayInputStream(input);
-        BufferedReader br = new BufferedReader(new InputStreamReader(istream));
-
-        String strLine = br.readLine();
-        String parts[] = strLine.split(", ");
-        String verticesParts[] = parts[0].split(" ");
-        String edgesParts[] = parts[1].split(" ");
-        int numVertices = Integer.parseInt(verticesParts[0]);
-        int numEdges = Integer.parseInt(edgesParts[0]);
-
-        if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
-            System.err.println("Invalid graph file format. Offending line: " + strLine);
-            System.exit(-1);
-        }
-
-        System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
-
-        final ArrayList<ArrayList<Integer>> allEdges = new ArrayList<ArrayList<Integer>>(numVertices);
-
-        long beginTime = System.currentTimeMillis();
-
-        try {
-            while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
-                parts = strLine.split(": ");
-
-                final Integer vertex = Integer.parseInt(parts[0]);
-                final ArrayList<Integer> edges = new ArrayList<Integer>();
-
-                if (parts.length > 1) {
-                    parts = parts[1].split(" +");
-                    for (String part: parts) {
-                        final Integer edge = Integer.parseInt(part);
-                        edges.add(edge);
-                    }
-                }
-
-                allEdges.add(vertex, edges);
-            }
-        }
-        finally {
-            br.close();
-        }
-
-        long parseTime = System.currentTimeMillis();
-        System.out.println("Parse time     : " + (parseTime - beginTime));
-
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-
-         // naive triangle counting algorithm
-         for (int i = 0; i < numVertices; i++) {
-             ArrayList<Integer> n1 = allEdges.get(i);
-             for (int j: n1) {
-                 ArrayList<Integer> n2 = allEdges.get(j);
-                 for (int k: n2) {
-                     ArrayList<Integer> n3 = allEdges.get(k);
-                     for (int l: n3) {
-                         if (i < j && j < k && l == i) {
-                             triangles.add(new Triangle(i, j, k));
-                         }
-                     }
-                 }
-             }
-         }
-
-        return triangles;
-    }
 }

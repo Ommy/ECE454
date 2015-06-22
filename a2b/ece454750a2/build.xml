@@ -50,30 +50,14 @@
 
   <target name="ncores-1">
     <property name="ncores" value="1"/>
+    <property name="if" value="${graph}.txt"/>
+    <property name="of" value="${graph}.out"/>
   </target>
 
   <target name="ncores-2">
     <property name="ncores" value="2"/>
-  </target>
-
-  <target name="graph10K_A">
-    <property name="if" value="graph10K_A.txt"/>
-    <property name="of" value="graph10K_A.out"/>
-  </target>
-
-  <target name="graph100K_A">
-    <property name="if" value="graph100K_A.txt"/>
-    <property name="of" value="graph100K_A.out"/>
-  </target>
-
-  <target name="graph100K_B">
-    <property name="if" value="graph100K_B.txt"/>
-    <property name="of" value="graph100K_B.out"/>
-  </target>
-
-  <target name="graph100K_C">
-    <property name="if" value="graph100K_C.txt"/>
-    <property name="of" value="graph100K_C.out"/>
+    <property name="if" value="${graph}.txt"/>
+    <property name="of" value="${graph}.out"/>
   </target>
 
   <target name="clean">

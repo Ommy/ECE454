@@ -96,18 +96,43 @@ public class TriangleCountImpl {
         long parseTime = System.currentTimeMillis();
         System.out.println("Parse time     : " + (parseTime - beginTime));
 
+        long timeA = 0;
+        long timeB = 0;
+        long timeC = 0;
+        long timeD = 0;
+
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
         for (int vertex = 0; vertex < numVertices; vertex++) {
             final List<Integer> smallEdges = smallerEdges.get(vertex);
+
+            long x = System.currentTimeMillis();
+
             for (int smallVertex : smallEdges) {
                 final List<Integer> bigEdges = biggerEdges.get(vertex);
+
+                long y = System.currentTimeMillis();
+
                 for (int bigVertex : bigEdges) {
+
+                    long z = System.currentTimeMillis();
+
                     if (allEdges.get(smallVertex).contains(bigVertex)) {
+
+                        long w = System.currentTimeMillis();
+
                         triangles.add(new Triangle(smallVertex, vertex, bigVertex));
+
+                        timeD += System.currentTimeMillis() - w;
                     }
+
+                    timeC += System.currentTimeMillis() - z;
                 }
+
+                timeB += System.currentTimeMillis() - y;
             }
+
+            timeA += System.currentTimeMillis() - x;
 
 //            String o = String.format("->    %d / %d", vertex, numVertices);
 //            System.out.println(o);
@@ -117,6 +142,12 @@ public class TriangleCountImpl {
 
         System.out.println("Triangle time  : " + (finishTime - parseTime));
         System.out.println("Total time     : " + (finishTime - beginTime));
+
+
+        System.out.println("Triangle time A : " + timeA);
+        System.out.println("Triangle time B : " + timeB);
+        System.out.println("Triangle time C : " + timeC);
+        System.out.println("Triangle time D : " + timeD);
 
         return triangles;
     }

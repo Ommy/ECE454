@@ -99,8 +99,10 @@ public class TriangleCountImpl {
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
         for (int vertex = 0; vertex < numVertices; vertex++) {
-            for (int smallVertex : smallerEdges.get(vertex)) {
-                for (int bigVertex : biggerEdges.get(vertex)) {
+            final List<Integer> smallEdges = smallerEdges.get(vertex);
+            for (int smallVertex : smallEdges) {
+                final List<Integer> bigEdges = biggerEdges.get(vertex);
+                for (int bigVertex : bigEdges) {
                     if (allEdges.get(smallVertex).contains(bigVertex)) {
                         triangles.add(new Triangle(smallVertex, vertex, bigVertex));
                     }

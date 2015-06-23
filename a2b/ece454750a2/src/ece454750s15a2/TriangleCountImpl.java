@@ -11,6 +11,9 @@ package ece454750s15a2;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TriangleCountImpl {
 
@@ -155,8 +158,15 @@ public class TriangleCountImpl {
         System.out.println("Total time     : " + (finishTime - beginTime));
 
         return triangles;
-
     }
+
+    private class EnumerateTriangleRunnable implements Runnable {
+        @Override
+        public void run() {
+
+        }
+    }
+
 
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
         long beginTime = System.currentTimeMillis();
@@ -200,6 +210,8 @@ public class TriangleCountImpl {
                 }
             }
         });
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
 
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 

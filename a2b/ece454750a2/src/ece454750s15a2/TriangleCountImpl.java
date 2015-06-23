@@ -9,8 +9,6 @@
 
 package ece454750s15a2;
 
-import com.sun.corba.se.impl.orbutil.graph.Graph;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -173,9 +171,9 @@ public class TriangleCountImpl {
         }
     }
 
-    final ConcurrentLinkedQueue<Triple> jobQueue = new ConcurrentLinkedQueue<Triple>();
+    final BlockingQueue<Triple> jobQueue = new LinkedBlockingQueue<Triple>();
     final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
-    CopyOnWriteArrayList<Triangle> triangles = new CopyOnWriteArrayList<Triangle>();
+    final ConcurrentLinkedQueue<Triangle> triangles = new ConcurrentLinkedQueue<Triangle>();
 
 
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException, InterruptedException {
@@ -251,21 +249,19 @@ public class TriangleCountImpl {
         System.out.println("Triangle time  : " + (finishTime - parseTime));
         System.out.println("Total time     : " + (finishTime - beginTime));
 
-        return triangles;
+        return (List)triangles;
     }
 
     private class EnumerateTriangleRunnable implements Runnable {
         @Override
         public void run() {
             while (true) {
-                while (jobQueue.isEmpty()) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                } // busy wait
-                Triple job = jobQueue.poll();
+                Triple job = null;
+                try {
+                    job = jobQueue.take();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 if (job.isKill()) {
                     return;
                 } else if (allEdges.get(job.getSmallVertex()).contains(job.getBigVertex())) {

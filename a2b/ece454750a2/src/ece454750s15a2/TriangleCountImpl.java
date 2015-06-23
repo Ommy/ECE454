@@ -15,10 +15,8 @@ import java.util.concurrent.*;
 
 public class TriangleCountImpl {
 
-    private static final boolean debug = false;
     private byte[] input;
     private int numCores;
-
 
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
@@ -79,8 +77,7 @@ public class TriangleCountImpl {
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
         long beginTime = System.currentTimeMillis();
 
-        final InputStream istream = new ByteArrayInputStream(input);
-        final BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+        final BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input)));
 
         GraphParameters params = checkFirstLine(br);
 
@@ -117,7 +114,7 @@ public class TriangleCountImpl {
             allEdges.add(tempEdges);
         }
 
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+        final ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
         long parseTime = System.currentTimeMillis();
         System.out.println("Parse time     : " + (parseTime - beginTime));
@@ -140,35 +137,10 @@ public class TriangleCountImpl {
         return triangles;
     }
 
-    private class Triple {
-        public int vertex;
-        public int smallVertex;
-        public int bigVertex;
-
-        public Triple(int a, int b, int c) {
-            smallVertex = a;
-            vertex = b;
-            bigVertex = c;
-        }
-
-        public Integer getVertex() {
-            return vertex;
-        }
-
-        public Integer getBigVertex() {
-            return bigVertex;
-        }
-
-        public Integer getSmallVertex() {
-            return smallVertex;
-        }
-    }
-
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException, InterruptedException, ExecutionException {
         long beginTime = System.currentTimeMillis();
 
-        final InputStream istream = new ByteArrayInputStream(input);
-        final BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+        final BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input)));
 
         final GraphParameters params = checkFirstLine(br);
 
@@ -176,10 +148,9 @@ public class TriangleCountImpl {
         final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
         final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
 
-        String parts[] = null;
         String strLine = null;
         while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
-            parts = strLine.split(": ");
+            String parts[] = strLine.split(": ");
 
             final Integer vertex = Integer.parseInt(parts[0]);
 

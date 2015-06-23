@@ -9,6 +9,8 @@
 
 package ece454750s15a2;
 
+import com.sun.corba.se.impl.orbutil.graph.Graph;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -40,42 +42,25 @@ public class TriangleCountImpl {
         }
     }
 
-    private interface IParser {
-        void parse(final GraphParameters params, final BufferedReader br) throws IOException;
-    }
+    private GraphParameters checkFirstLine(final BufferedReader br) throws IOException {
 
-    private GraphParameters readInput(IParser parser) {
-        final InputStream istream = new ByteArrayInputStream(input);
-        final BufferedReader br = new BufferedReader(new InputStreamReader(istream));
         GraphParameters params = null;
 
-        try {
-            String strLine = br.readLine();
-            String parts[] = strLine.split(", ");
-            String verticesParts[] = parts[0].split(" ");
-            String edgesParts[] = parts[1].split(" ");
-            int numVertices = Integer.parseInt(verticesParts[0]);
-            int numEdges = Integer.parseInt(edgesParts[0]);
+        String strLine = br.readLine();
+        String parts[] = strLine.split(", ");
+        String verticesParts[] = parts[0].split(" ");
+        String edgesParts[] = parts[1].split(" ");
+        int numVertices = Integer.parseInt(verticesParts[0]);
+        int numEdges = Integer.parseInt(edgesParts[0]);
 
-            if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
-                System.err.println("Invalid graph file format. Offending line: " + strLine);
-                System.exit(-1);
-            }
-
-            System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
-
-            params = new GraphParameters(numVertices, numEdges);
-            parser.parse(params, br);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                br.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
+            System.err.println("Invalid graph file format. Offending line: " + strLine);
+            System.exit(-1);
         }
+
+        System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
+
+        params = new GraphParameters(numVertices, numEdges);
 
         return params;
     }
@@ -97,45 +82,44 @@ public class TriangleCountImpl {
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
         long beginTime = System.currentTimeMillis();
 
+        final InputStream istream = new ByteArrayInputStream(input);
+        final BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+
+        GraphParameters params = checkFirstLine(br);
+
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
         final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
         final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
 
-        final GraphParameters params = readInput(new IParser() {
-            @Override
-            public void parse(final GraphParameters params, final BufferedReader br) throws IOException {
+        String parts[] = null;
+        String strLine = null;
 
-                String parts[] = null;
-                String strLine = null;
+        while ((strLine = br.readLine()) != null && !strLine.equals("")) {
+            parts = strLine.split(": ");
 
-                while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
-                    parts = strLine.split(": ");
+            final Integer vertex = Integer.parseInt(parts[0]);
 
-                    final Integer vertex = Integer.parseInt(parts[0]);
+            final Set<Integer> tempEdges = new HashSet<Integer>();
+            final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
+            final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
 
-                    final Set<Integer> tempEdges = new HashSet<Integer>();
-                    final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
-                    final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
-
-                    if (parts.length > 1) {
-                        parts = parts[1].split(" ");
-                        for (String part: parts) {
-                            final Integer edge = Integer.parseInt(part);
-                            if (edge < vertex) {
-                                tempSmallEdges.add(edge);
-                            } else {
-                                tempBigEdges.add(edge);
-                            }
-                            tempEdges.add(edge);
-                        }
+            if (parts.length > 1) {
+                parts = parts[1].split(" ");
+                for (String part: parts) {
+                    final Integer edge = Integer.parseInt(part);
+                    if (edge < vertex) {
+                        tempSmallEdges.add(edge);
+                    } else {
+                        tempBigEdges.add(edge);
                     }
-
-                    smallerEdges.add(tempSmallEdges);
-                    biggerEdges.add(tempBigEdges);
-                    allEdges.add(tempEdges);
+                    tempEdges.add(edge);
                 }
             }
-        });
+
+            smallerEdges.add(tempSmallEdges);
+            biggerEdges.add(tempBigEdges);
+            allEdges.add(tempEdges);
+        }
 
         ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
@@ -171,45 +155,44 @@ public class TriangleCountImpl {
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
         long beginTime = System.currentTimeMillis();
 
+        final InputStream istream = new ByteArrayInputStream(input);
+        final BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+
+        final GraphParameters params = checkFirstLine(br);
+
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
         final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
         final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
 
-        final GraphParameters params = readInput(new IParser() {
-            @Override
-            public void parse(final GraphParameters params, final BufferedReader br) throws IOException {
+        String parts[] = null;
+        String strLine = null;
 
-                String parts[] = null;
-                String strLine = null;
+        while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
+            parts = strLine.split(": ");
 
-                while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
-                    parts = strLine.split(": ");
+            final Integer vertex = Integer.parseInt(parts[0]);
 
-                    final Integer vertex = Integer.parseInt(parts[0]);
+            final Set<Integer> tempEdges = new HashSet<Integer>();
+            final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
+            final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
 
-                    final Set<Integer> tempEdges = new HashSet<Integer>();
-                    final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
-                    final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
-
-                    if (parts.length > 1) {
-                        parts = parts[1].split(" ");
-                        for (String part: parts) {
-                            final Integer edge = Integer.parseInt(part);
-                            if (edge < vertex) {
-                                tempSmallEdges.add(edge);
-                            } else {
-                                tempBigEdges.add(edge);
-                            }
-                            tempEdges.add(edge);
-                        }
+            if (parts.length > 1) {
+                parts = parts[1].split(" ");
+                for (String part: parts) {
+                    final Integer edge = Integer.parseInt(part);
+                    if (edge < vertex) {
+                        tempSmallEdges.add(edge);
+                    } else {
+                        tempBigEdges.add(edge);
                     }
-
-                    smallerEdges.add(tempSmallEdges);
-                    biggerEdges.add(tempBigEdges);
-                    allEdges.add(tempEdges);
+                    tempEdges.add(edge);
                 }
             }
-        });
+
+            smallerEdges.add(tempSmallEdges);
+            biggerEdges.add(tempBigEdges);
+            allEdges.add(tempEdges);
+        }
 
         final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
 

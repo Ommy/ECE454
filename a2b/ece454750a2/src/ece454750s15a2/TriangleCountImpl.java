@@ -146,9 +146,9 @@ public class TriangleCountImpl {
         public int bigVertex;
 
         public Triple(int a, int b, int c) {
-            vertex = a;
-            bigVertex = b;
-            smallVertex = c;
+            smallVertex = a;
+            vertex = b;
+            bigVertex = c;
         }
 
         public Integer getVertex() {
@@ -162,17 +162,7 @@ public class TriangleCountImpl {
         public Integer getSmallVertex() {
             return smallVertex;
         }
-
-        public boolean isKill() {
-            return vertex == -1
-                    && smallVertex == -1
-                    && bigVertex == -1;
-        }
     }
-
-    final BlockingQueue<Triple> jobQueue = new LinkedBlockingQueue<Triple>();
-    final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
-
 
     private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException, InterruptedException, ExecutionException {
         long beginTime = System.currentTimeMillis();
@@ -184,8 +174,7 @@ public class TriangleCountImpl {
 
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
         final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
-
-
+        final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
 
         String parts[] = null;
         String strLine = null;
@@ -216,34 +205,23 @@ public class TriangleCountImpl {
             allEdges.add(tempEdges);
         }
 
-        final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
-        final List<Triangle> triangles = new ArrayList<Triangle>();
-
         long parseTime = System.currentTimeMillis();
         System.out.println("Parse time     : " + (parseTime - beginTime));
 
-        List<Future> futures = new ArrayList<Future>();
+        final List<Callable<List<Triangle>>> callables = new ArrayList<Callable<List<Triangle>>>();
         for (int i = 0; i < numCores; i++) {
-            futures.add(executorService.submit(new EnumerateTriangleRunnable()));
+            callables.add(new EnumerateTriangleCallable(i, smallerEdges, biggerEdges, allEdges));
         }
 
-        for (int vertex = 0; vertex < params.numVertices; vertex++) {
-            for (Integer smallVertex : smallerEdges.get(vertex)) {
-                for (Integer bigVertex : biggerEdges.get(vertex)) {
-                    jobQueue.offer(new Triple(vertex, smallVertex, bigVertex));
-                }
-            }
-        }
-
-        // Kill all threads
+        final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
+        final List<Future<List<Triangle>>> futures = new ArrayList<Future<List<Triangle>>>();
         for (int i = 0; i < numCores; i++) {
-            jobQueue.add(new Triple(-1, -1, -1));
+            futures.add(executorService.submit(callables.get(i)));
         }
 
-        executorService.shutdown();
-
-        for (Future future: futures) {
-            triangles.addAll((List<Triangle>) future.get());
+        final List<Triangle> triangles = new ArrayList<Triangle>();
+        for (Future<List<Triangle>> future : futures) {
+            triangles.addAll(future.get());
         }
 
         long finishTime = System.currentTimeMillis();
@@ -254,26 +232,38 @@ public class TriangleCountImpl {
         return triangles;
     }
 
-    private class EnumerateTriangleRunnable implements Callable {
+    private class EnumerateTriangleCallable implements Callable<List<Triangle>> {
+
+        private final Integer position;
+        private final List<ArrayList<Integer>> smallerEdges;
+        private final List<ArrayList<Integer>> biggerEdges;
+
+        private final List<Set<Integer>> allEdges;
+        private final List<Triangle> triangles = new ArrayList<Triangle>();
+
+        public EnumerateTriangleCallable(
+                final int position,
+                final List<ArrayList<Integer>> smallerEdges,
+                final List<ArrayList<Integer>> biggerEdges,
+                final List<Set<Integer>> allEdges) {
+            this.position = position;
+            this.smallerEdges = smallerEdges;
+            this.biggerEdges = biggerEdges;
+            this.allEdges = allEdges;
+        }
+
         @Override
         public List<Triangle> call() {
-            List<Triangle> triangles = new ArrayList<Triangle>();
-            while (true) {
-                Triple job = null;
-                try {
-                    job = jobQueue.take();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (job == null) {
-                    continue;
-                }
-                if (job.isKill()) {
-                    return triangles;
-                } else if (allEdges.get(job.getSmallVertex()).contains(job.getBigVertex())) {
-                    triangles.add(new Triangle(job.getSmallVertex(), job.getVertex(), job.getBigVertex()));
+            for (int i = position; i < allEdges.size(); i+=numCores) {
+                for (Integer smallVertex : smallerEdges.get(i)) {
+                    for (Integer bigVertex : biggerEdges.get(i)) {
+                        if (allEdges.get(smallVertex).contains(bigVertex)) {
+                            triangles.add(new Triangle(smallVertex, i, bigVertex));
+                        }
+                    }
                 }
             }
+            return triangles;
         }
     }
 

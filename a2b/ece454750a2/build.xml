@@ -38,6 +38,9 @@
   </target>
 
   <target name="a2" description="Run the solution with arguments" depends="compile">
+    <property name="ncores" value="${ncores}"/>
+    <property name="if" value="${graph}.txt"/>
+    <property name="of" value="${graph}.out"/>
     <jar jarfile="a2.jar" basedir="${build}"/>
     <sequential>
       <echo>A2 test with arguments -ncores ${ncores} -if ${if} -of ${of}</echo>
@@ -46,18 +49,6 @@
         <arg line="-ncores ${ncores} -if ${if} -of ${of}"/>
       </java>
     </sequential>
-  </target>
-
-  <target name="ncores-1">
-    <property name="ncores" value="1"/>
-    <property name="if" value="${graph}.txt"/>
-    <property name="of" value="${graph}.out"/>
-  </target>
-
-  <target name="ncores-2">
-    <property name="ncores" value="5"/>
-    <property name="if" value="${graph}.txt"/>
-    <property name="of" value="${graph}.out"/>
   </target>
 
   <target name="clean">

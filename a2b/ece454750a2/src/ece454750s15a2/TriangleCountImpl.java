@@ -90,7 +90,6 @@ public class TriangleCountImpl {
 
         String parts[] = null;
         String strLine = null;
-
         while ((strLine = br.readLine()) != null && !strLine.equals("")) {
             parts = strLine.split(": ");
 
@@ -190,7 +189,6 @@ public class TriangleCountImpl {
 
         String parts[] = null;
         String strLine = null;
-
         while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
             parts = strLine.split(": ");
 

@@ -63,6 +63,7 @@ public class TriangleCountImpl {
 
             params = new GraphParameters(numVertices, numEdges);
             parser.parse(params, br);
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -75,7 +76,6 @@ public class TriangleCountImpl {
 
         return params;
     }
-
 
     public List<Triangle> enumerateTriangles() throws IOException {
 
@@ -92,68 +92,11 @@ public class TriangleCountImpl {
     }
 
     private List<Triangle> enumerateTrianglesSingleThreaded() throws IOException {
-
         long beginTime = System.currentTimeMillis();
 
-        final ArrayList<ArrayList<Integer>> allEdges = new ArrayList<ArrayList<Integer>>();
-
-        final GraphParameters params = readInput(new IParser() {
-            @Override
-            public void parse(final GraphParameters params, final BufferedReader br) throws IOException {
-
-                String parts[] = null;
-                String strLine = null;
-
-                while ((strLine = br.readLine()) != null && !strLine.equals("")) {
-                    parts = strLine.split(": ");
-
-                    final Integer vertex = Integer.parseInt(parts[0]);
-                    final ArrayList<Integer> edges = new ArrayList<Integer>();
-
-                    if (parts.length > 1) {
-                        parts = parts[1].split(" +");
-                        for (String part : parts) {
-                            final Integer edge = Integer.parseInt(part);
-                            edges.add(edge);
-                        }
-                    }
-
-                    allEdges.add(vertex, edges);
-                }
-            }
-        });
-
-        long parseTime = System.currentTimeMillis();
-        System.out.println("Parse time     : " + (parseTime - beginTime));
-
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-
-        // naive triangle counting algorithm
-        for (int i = 0; i < params.numVertices; i++) {
-            ArrayList<Integer> n1 = allEdges.get(i);
-            for (int j: n1) {
-                ArrayList<Integer> n2 = allEdges.get(j);
-                for (int k: n2) {
-                    ArrayList<Integer> n3 = allEdges.get(k);
-                    for (int l: n3) {
-                        if (i < j && j < k && l == i) {
-                            triangles.add(new Triangle(i, j, k));
-                        }
-                    }
-                }
-            }
-        }
-
-        return triangles;
-    }
-
-    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
-
-        long beginTime = System.currentTimeMillis();
-
-        final ArrayList<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
-        final ArrayList<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
-        final ArrayList<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
+        final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
+        final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
+        final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
 
         final GraphParameters params = readInput(new IParser() {
             @Override
@@ -166,6 +109,7 @@ public class TriangleCountImpl {
                     parts = strLine.split(": ");
 
                     final Integer vertex = Integer.parseInt(parts[0]);
+
                     final Set<Integer> tempEdges = new HashSet<Integer>();
                     final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
                     final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
@@ -182,83 +126,100 @@ public class TriangleCountImpl {
                             tempEdges.add(edge);
                         }
                     }
-                    smallerEdges.add(vertex, tempSmallEdges);
-                    biggerEdges.add(vertex, tempBigEdges);
-                    allEdges.add(vertex, tempEdges);
+
+                    smallerEdges.add(tempSmallEdges);
+                    biggerEdges.add(tempBigEdges);
+                    allEdges.add(tempEdges);
                 }
             }
         });
 
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+
         long parseTime = System.currentTimeMillis();
         System.out.println("Parse time     : " + (parseTime - beginTime));
 
-        long timeA = 0;
-        long timeB = 0;
-        long timeC = 0;
-        long timeD = 0;
-
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-
         for (int vertex = 0; vertex < params.numVertices; vertex++) {
-            final List<Integer> smallEdges = smallerEdges.get(vertex);
-
-            long x = System.currentTimeMillis();
-
-            for (int smallVertex : smallEdges) {
-                final List<Integer> bigEdges = biggerEdges.get(vertex);
-
-                long y = 0;
-                if (debug) {
-                    y = System.currentTimeMillis();
-                }
-
-                for (int bigVertex : bigEdges) {
-
-                    long z = 0;
-                    if (debug) {
-                        z = System.currentTimeMillis();
-                    }
-
+            for (Integer smallVertex : smallerEdges.get(vertex)) {
+                for (Integer bigVertex : biggerEdges.get(vertex)) {
                     if (allEdges.get(smallVertex).contains(bigVertex)) {
-
-                        long w = 0;
-                        if (debug) {
-                            w = System.currentTimeMillis();
-                        }
-
                         triangles.add(new Triangle(smallVertex, vertex, bigVertex));
-
-                        if (debug) {
-                            timeD += System.currentTimeMillis() - w;
-                        }
-                    }
-
-                    if (debug) {
-                        timeC += System.currentTimeMillis() - z;
                     }
                 }
-
-                if (debug) {
-                    timeB += System.currentTimeMillis() - y;
-                }
-            }
-
-            if (debug) {
-                timeA += System.currentTimeMillis() - x;
             }
         }
 
         long finishTime = System.currentTimeMillis();
 
-        System.out.println("Triangle time  : " + (finishTime - parseTime) / 1000);
-        System.out.println("Total time     : " + (finishTime - beginTime) / 1000);
+        System.out.println("Triangle time  : " + (finishTime - parseTime));
+        System.out.println("Total time     : " + (finishTime - beginTime));
 
-        if (debug) {
-            System.out.println("Triangle time A : " + timeA);
-            System.out.println("Triangle time B : " + timeB);
-            System.out.println("Triangle time C : " + timeC);
-            System.out.println("Triangle time D : " + timeD);
+        return triangles;
+
+    }
+
+    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
+        long beginTime = System.currentTimeMillis();
+
+        final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
+        final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
+        final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
+
+        final GraphParameters params = readInput(new IParser() {
+            @Override
+            public void parse(final GraphParameters params, final BufferedReader br) throws IOException {
+
+                String parts[] = null;
+                String strLine = null;
+
+                while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
+                    parts = strLine.split(": ");
+
+                    final Integer vertex = Integer.parseInt(parts[0]);
+
+                    final Set<Integer> tempEdges = new HashSet<Integer>();
+                    final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
+                    final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+
+                    if (parts.length > 1) {
+                        parts = parts[1].split(" ");
+                        for (String part: parts) {
+                            final Integer edge = Integer.parseInt(part);
+                            if (edge < vertex) {
+                                tempSmallEdges.add(edge);
+                            } else {
+                                tempBigEdges.add(edge);
+                            }
+                            tempEdges.add(edge);
+                        }
+                    }
+
+                    smallerEdges.add(tempSmallEdges);
+                    biggerEdges.add(tempBigEdges);
+                    allEdges.add(tempEdges);
+                }
+            }
+        });
+
+        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+
+        long parseTime = System.currentTimeMillis();
+        System.out.println("Parse time     : " + (parseTime - beginTime));
+
+        for (int vertex = 0; vertex < params.numVertices; vertex++) {
+            for (Integer smallVertex : smallerEdges.get(vertex)) {
+                for (Integer bigVertex : biggerEdges.get(vertex)) {
+                    if (allEdges.get(smallVertex).contains(bigVertex)) {
+                        triangles.add(new Triangle(smallVertex, vertex, bigVertex));
+                    }
+                }
+            }
         }
+
+        long finishTime = System.currentTimeMillis();
+
+        System.out.println("Triangle time  : " + (finishTime - parseTime));
+        System.out.println("Total time     : " + (finishTime - beginTime));
 
         return triangles;
     }

@@ -55,7 +55,7 @@
   </target>
 
   <target name="ncores-2">
-    <property name="ncores" value="2"/>
+    <property name="ncores" value="5"/>
     <property name="if" value="${graph}.txt"/>
     <property name="of" value="${graph}.out"/>
   </target>

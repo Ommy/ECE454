@@ -13,15 +13,14 @@ import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class TriangleCountImpl {
 
     private static final boolean debug = false;
     private byte[] input;
     private int numCores;
+
 
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
@@ -65,7 +64,7 @@ public class TriangleCountImpl {
         return params;
     }
 
-    public List<Triangle> enumerateTriangles() throws IOException {
+    public List<Triangle> enumerateTriangles() throws IOException, InterruptedException {
 
         List<Triangle> triangles = null;
         if (numCores == 1) {
@@ -144,15 +143,42 @@ public class TriangleCountImpl {
         return triangles;
     }
 
-    private class EnumerateTriangleRunnable implements Runnable {
-        @Override
-        public void run() {
+    private class Triple {
+        public Integer vertex;
+        public Integer smallVertex;
+        public Integer bigVertex;
 
+        public Triple(int a, int b, int c) {
+            vertex = a;
+            bigVertex = b;
+            smallVertex = c;
+        }
+
+        public Integer getVertex() {
+            return vertex;
+        }
+
+        public Integer getBigVertex() {
+            return bigVertex;
+        }
+
+        public Integer getSmallVertex() {
+            return smallVertex;
+        }
+
+        public boolean isKill() {
+            return vertex == -1
+                    && smallVertex == -1
+                    && bigVertex == -1;
         }
     }
 
+    final ConcurrentLinkedQueue<Triple> jobQueue = new ConcurrentLinkedQueue<Triple>();
+    final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
+    CopyOnWriteArrayList<Triangle> triangles = new CopyOnWriteArrayList<Triangle>();
 
-    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException {
+
+    private List<Triangle> enumerateTrianglesMultiThreaded() throws IOException, InterruptedException {
         long beginTime = System.currentTimeMillis();
 
         final InputStream istream = new ByteArrayInputStream(input);
@@ -162,7 +188,8 @@ public class TriangleCountImpl {
 
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
         final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
+
+
 
         String parts[] = null;
         String strLine = null;
@@ -196,20 +223,28 @@ public class TriangleCountImpl {
 
         final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
 
-        ArrayList<Triangle> triangles = new ArrayList<Triangle>();
 
         long parseTime = System.currentTimeMillis();
         System.out.println("Parse time     : " + (parseTime - beginTime));
 
+        for (int i = 0; i < numCores; i++) {
+            executorService.submit(new EnumerateTriangleRunnable());
+        }
+
         for (int vertex = 0; vertex < params.numVertices; vertex++) {
             for (Integer smallVertex : smallerEdges.get(vertex)) {
                 for (Integer bigVertex : biggerEdges.get(vertex)) {
-                    if (allEdges.get(smallVertex).contains(bigVertex)) {
-                        triangles.add(new Triangle(smallVertex, vertex, bigVertex));
-                    }
+                    jobQueue.add(new Triple(vertex, smallVertex, bigVertex));
                 }
             }
         }
+
+        // Kill all threads
+        for (int i = 0; i < numCores; i++) {
+            jobQueue.add(new Triple(-1, -1, -1));
+        }
+
+        executorService.shutdown();
 
         long finishTime = System.currentTimeMillis();
 
@@ -217,6 +252,27 @@ public class TriangleCountImpl {
         System.out.println("Total time     : " + (finishTime - beginTime));
 
         return triangles;
+    }
+
+    private class EnumerateTriangleRunnable implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                while (jobQueue.isEmpty()) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } // busy wait
+                Triple job = jobQueue.poll();
+                if (job.isKill()) {
+                    return;
+                } else if (allEdges.get(job.getSmallVertex()).contains(job.getBigVertex())) {
+                    triangles.add(new Triangle(job.getSmallVertex(), job.getVertex(), job.getBigVertex()));
+                }
+            }
+        }
     }
 
 }

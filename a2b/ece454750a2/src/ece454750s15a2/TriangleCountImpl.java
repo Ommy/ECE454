@@ -82,8 +82,7 @@ public class TriangleCountImpl {
         GraphParameters params = checkFirstLine(br);
 
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
+        final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>();
 
         String parts[] = null;
         String strLine = null;
@@ -92,9 +91,8 @@ public class TriangleCountImpl {
 
             final Integer vertex = Integer.parseInt(parts[0]);
 
-            final Set<Integer> tempEdges = new HashSet<Integer>();
             final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
-            final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+            final HashSet<Integer> tempBigEdges = new HashSet<Integer>();
 
             if (parts.length > 1) {
                 parts = parts[1].split(" ");
@@ -105,13 +103,11 @@ public class TriangleCountImpl {
                     } else {
                         tempBigEdges.add(edge);
                     }
-                    tempEdges.add(edge);
                 }
             }
 
             smallerEdges.add(tempSmallEdges);
             biggerEdges.add(tempBigEdges);
-            allEdges.add(tempEdges);
         }
 
         final ArrayList<Triangle> triangles = new ArrayList<Triangle>();
@@ -121,8 +117,9 @@ public class TriangleCountImpl {
 
         for (int vertex = 0; vertex < params.numVertices; vertex++) {
             for (Integer smallVertex : smallerEdges.get(vertex)) {
+                final Set<Integer> biggerSet = biggerEdges.get(smallVertex);
                 for (Integer bigVertex : biggerEdges.get(vertex)) {
-                    if (allEdges.get(smallVertex).contains(bigVertex)) {
+                    if (biggerSet.contains(bigVertex)) {
                         triangles.add(new Triangle(smallVertex, vertex, bigVertex));
                     }
                 }
@@ -145,8 +142,7 @@ public class TriangleCountImpl {
         final GraphParameters params = checkFirstLine(br);
 
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<ArrayList<Integer>> biggerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<Set<Integer>> allEdges = new ArrayList<Set<Integer>>();
+        final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>();
 
         String strLine = null;
         while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
@@ -154,7 +150,6 @@ public class TriangleCountImpl {
 
             final Integer vertex = Integer.parseInt(parts[0]);
 
-            final Set<Integer> tempEdges = new HashSet<Integer>();
             final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
             final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
 
@@ -167,13 +162,11 @@ public class TriangleCountImpl {
                     } else {
                         tempBigEdges.add(edge);
                     }
-                    tempEdges.add(edge);
                 }
             }
 
             smallerEdges.add(tempSmallEdges);
-            biggerEdges.add(tempBigEdges);
-            allEdges.add(tempEdges);
+            biggerEdges.add(new HashSet<Integer>(tempBigEdges));
         }
 
         long parseTime = System.currentTimeMillis();
@@ -181,7 +174,7 @@ public class TriangleCountImpl {
 
         final List<Callable<List<Triangle>>> callables = new ArrayList<Callable<List<Triangle>>>();
         for (int i = 0; i < numCores; i++) {
-            callables.add(new EnumerateTriangleCallable(i, smallerEdges, biggerEdges, allEdges));
+            callables.add(new EnumerateTriangleCallable(i, smallerEdges, biggerEdges));
         }
 
         final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
@@ -207,28 +200,25 @@ public class TriangleCountImpl {
 
         private final Integer position;
         private final List<ArrayList<Integer>> smallerEdges;
-        private final List<ArrayList<Integer>> biggerEdges;
+        private final List<HashSet<Integer>> biggerEdges;
 
-        private final List<Set<Integer>> allEdges;
         private final List<Triangle> triangles = new ArrayList<Triangle>();
 
         public EnumerateTriangleCallable(
                 final int position,
                 final List<ArrayList<Integer>> smallerEdges,
-                final List<ArrayList<Integer>> biggerEdges,
-                final List<Set<Integer>> allEdges) {
+                final List<HashSet<Integer>> biggerEdges) {
             this.position = position;
             this.smallerEdges = smallerEdges;
             this.biggerEdges = biggerEdges;
-            this.allEdges = allEdges;
         }
 
         @Override
         public List<Triangle> call() {
-            for (int i = position; i < allEdges.size(); i+=numCores) {
+            for (int i = position; i < smallerEdges.size(); i+=numCores) {
                 for (Integer smallVertex : smallerEdges.get(i)) {
                     for (Integer bigVertex : biggerEdges.get(i)) {
-                        if (allEdges.get(smallVertex).contains(bigVertex)) {
+                        if (biggerEdges.get(smallVertex).contains(bigVertex)) {
                             triangles.add(new Triangle(smallVertex, i, bigVertex));
                         }
                     }

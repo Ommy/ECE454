@@ -81,21 +81,23 @@ public class TriangleCountImpl {
 
         GraphParameters params = checkFirstLine(br);
 
-        final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>();
+        final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>(params.numVertices);
+        final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>(params.numVertices);
 
-        String parts[] = null;
         String strLine = null;
         while ((strLine = br.readLine()) != null && !strLine.equals("")) {
-            parts = strLine.split(": ");
+            String parts[] = strLine.split(": ");
 
             final Integer vertex = Integer.parseInt(parts[0]);
 
-            final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
-            final HashSet<Integer> tempBigEdges = new HashSet<Integer>();
+            ArrayList<Integer> tempSmallEdges = null;
+            HashSet<Integer> tempBigEdges = null;
 
             if (parts.length > 1) {
                 parts = parts[1].split(" ");
+
+                tempSmallEdges = new ArrayList<Integer>(parts.length/4);
+                tempBigEdges = new HashSet<Integer>(parts.length/4);
                 for (String part: parts) {
                     final Integer edge = Integer.parseInt(part);
                     if (edge < vertex) {
@@ -105,6 +107,15 @@ public class TriangleCountImpl {
                     }
                 }
             }
+
+            if (tempSmallEdges ==  null) {
+                tempSmallEdges = new ArrayList<Integer>();
+            }
+            if (tempBigEdges == null) {
+                tempBigEdges = new HashSet<Integer>();
+            }
+
+            Collections.sort(tempSmallEdges);
 
             smallerEdges.add(tempSmallEdges);
             biggerEdges.add(tempBigEdges);
@@ -117,9 +128,8 @@ public class TriangleCountImpl {
 
         for (int vertex = 0; vertex < params.numVertices; vertex++) {
             for (Integer smallVertex : smallerEdges.get(vertex)) {
-                final Set<Integer> biggerSet = biggerEdges.get(smallVertex);
                 for (Integer bigVertex : biggerEdges.get(vertex)) {
-                    if (biggerSet.contains(bigVertex)) {
+                    if (biggerEdges.get(smallVertex).contains(bigVertex)) {
                         triangles.add(new Triangle(smallVertex, vertex, bigVertex));
                     }
                 }
@@ -141,8 +151,8 @@ public class TriangleCountImpl {
 
         final GraphParameters params = checkFirstLine(br);
 
-        final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>();
-        final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>();
+        final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>(params.numVertices);
+        final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>(params.numVertices);
 
         String strLine = null;
         while ((strLine = br.readLine()) != null && !strLine.equals(""))   {
@@ -165,6 +175,7 @@ public class TriangleCountImpl {
                 }
             }
 
+            Collections.sort(tempSmallEdges);
             smallerEdges.add(tempSmallEdges);
             biggerEdges.add(new HashSet<Integer>(tempBigEdges));
         }
@@ -202,8 +213,6 @@ public class TriangleCountImpl {
         private final List<ArrayList<Integer>> smallerEdges;
         private final List<HashSet<Integer>> biggerEdges;
 
-        private final List<Triangle> triangles = new ArrayList<Triangle>();
-
         public EnumerateTriangleCallable(
                 final int position,
                 final List<ArrayList<Integer>> smallerEdges,
@@ -215,6 +224,8 @@ public class TriangleCountImpl {
 
         @Override
         public List<Triangle> call() {
+            final List<Triangle> triangles = new ArrayList<Triangle>();
+
             for (int i = position; i < smallerEdges.size(); i+=numCores) {
                 for (Integer smallVertex : smallerEdges.get(i)) {
                     for (Integer bigVertex : biggerEdges.get(i)) {

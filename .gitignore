@@ -13,6 +13,7 @@ a2b/ece454750a2/*.jar
 a2b/ece454750a2/*.txt
 a2b/ece454750a2/*.out
 a2b/ece454750a2/*.sort
+a2b/ece454750a2/*.ours
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*

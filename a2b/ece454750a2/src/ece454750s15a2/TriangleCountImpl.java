@@ -38,9 +38,6 @@ public class TriangleCountImpl {
     }
 
     private GraphParameters checkFirstLine(final BufferedReader br) throws IOException {
-
-        GraphParameters params = null;
-
         String strLine = br.readLine();
         String parts[] = strLine.split(", ");
         String verticesParts[] = parts[0].split(" ");
@@ -55,9 +52,7 @@ public class TriangleCountImpl {
 
         System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
 
-        params = new GraphParameters(numVertices, numEdges);
-
-        return params;
+        return new GraphParameters(numVertices, numEdges);
     }
 
     public List<Triangle> enumerateTriangles() throws IOException, InterruptedException, ExecutionException {
@@ -79,7 +74,7 @@ public class TriangleCountImpl {
 
         final BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input)));
 
-        GraphParameters params = checkFirstLine(br);
+        final GraphParameters params = checkFirstLine(br);
 
         final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>(params.numVertices);
         final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>(params.numVertices);
@@ -90,35 +85,26 @@ public class TriangleCountImpl {
 
             final Integer vertex = Integer.parseInt(parts[0]);
 
-            ArrayList<Integer> tempSmallEdges = null;
-            HashSet<Integer> tempBigEdges = null;
+            final ArrayList<Integer> smallEdges = new ArrayList<Integer>();
+            final ArrayList<Integer> bigEdges = new ArrayList<Integer>();
 
             if (parts.length > 1) {
                 parts = parts[1].split(" ");
 
-                tempSmallEdges = new ArrayList<Integer>(parts.length/4);
-                tempBigEdges = new HashSet<Integer>(parts.length/4);
                 for (String part: parts) {
                     final Integer edge = Integer.parseInt(part);
                     if (edge < vertex) {
-                        tempSmallEdges.add(edge);
+                        smallEdges.add(edge);
                     } else {
-                        tempBigEdges.add(edge);
+                        bigEdges.add(edge);
                     }
                 }
             }
 
-            if (tempSmallEdges ==  null) {
-                tempSmallEdges = new ArrayList<Integer>();
-            }
-            if (tempBigEdges == null) {
-                tempBigEdges = new HashSet<Integer>();
-            }
+            Collections.sort(smallEdges);
 
-            Collections.sort(tempSmallEdges);
-
-            smallerEdges.add(tempSmallEdges);
-            biggerEdges.add(tempBigEdges);
+            smallerEdges.add(smallEdges);
+            biggerEdges.add(new HashSet<Integer>(bigEdges));
         }
 
         final ArrayList<Triangle> triangles = new ArrayList<Triangle>();
@@ -160,24 +146,25 @@ public class TriangleCountImpl {
 
             final Integer vertex = Integer.parseInt(parts[0]);
 
-            final ArrayList<Integer> tempSmallEdges = new ArrayList<Integer>();
-            final ArrayList<Integer> tempBigEdges = new ArrayList<Integer>();
+            final ArrayList<Integer> smallEdges = new ArrayList<Integer>();
+            final ArrayList<Integer> bigEdges = new ArrayList<Integer>();
 
             if (parts.length > 1) {
                 parts = parts[1].split(" ");
                 for (String part: parts) {
                     final Integer edge = Integer.parseInt(part);
                     if (edge < vertex) {
-                        tempSmallEdges.add(edge);
+                        smallEdges.add(edge);
                     } else {
-                        tempBigEdges.add(edge);
+                        bigEdges.add(edge);
                     }
                 }
             }
 
-            Collections.sort(tempSmallEdges);
-            smallerEdges.add(tempSmallEdges);
-            biggerEdges.add(new HashSet<Integer>(tempBigEdges));
+            Collections.sort(smallEdges);
+
+            smallerEdges.add(smallEdges);
+            biggerEdges.add(new HashSet<Integer>(bigEdges));
         }
 
         long parseTime = System.currentTimeMillis();
@@ -185,7 +172,7 @@ public class TriangleCountImpl {
 
         final List<Callable<List<Triangle>>> callables = new ArrayList<Callable<List<Triangle>>>();
         for (int i = 0; i < numCores; i++) {
-            callables.add(new EnumerateTriangleCallable(i, smallerEdges, biggerEdges));
+            callables.add(new EnumerateTriangleCallable(i, numCores, smallerEdges, biggerEdges));
         }
 
         final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
@@ -209,15 +196,18 @@ public class TriangleCountImpl {
 
     private class EnumerateTriangleCallable implements Callable<List<Triangle>> {
 
-        private final Integer position;
+        private final int initialPosition;
+        private final int step;
         private final List<ArrayList<Integer>> smallerEdges;
         private final List<HashSet<Integer>> biggerEdges;
 
         public EnumerateTriangleCallable(
-                final int position,
+                final int initialPosition,
+                final int step,
                 final List<ArrayList<Integer>> smallerEdges,
                 final List<HashSet<Integer>> biggerEdges) {
-            this.position = position;
+            this.initialPosition = initialPosition;
+            this.step = step;
             this.smallerEdges = smallerEdges;
             this.biggerEdges = biggerEdges;
         }
@@ -226,7 +216,7 @@ public class TriangleCountImpl {
         public List<Triangle> call() {
             final List<Triangle> triangles = new ArrayList<Triangle>();
 
-            for (int i = position; i < smallerEdges.size(); i+=numCores) {
+            for (int i = initialPosition; i < smallerEdges.size(); i += step) {
                 for (Integer smallVertex : smallerEdges.get(i)) {
                     for (Integer bigVertex : biggerEdges.get(i)) {
                         if (biggerEdges.get(smallVertex).contains(bigVertex)) {

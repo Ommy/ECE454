@@ -1,4 +1,7 @@
+#!/usr/bin/env bash
+
 ./get_graphs.sh
+
 ncores=1
 bold=$(tput bold)
 normal=$(tput sgr0)

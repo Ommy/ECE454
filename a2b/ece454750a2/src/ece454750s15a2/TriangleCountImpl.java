@@ -32,31 +32,28 @@ public class TriangleCountImpl {
         public final Integer numVertices;
         public final Integer numEdges;
 
-        public Graph(BufferedReader bufferedReader, int numVertices, int numEdges) {
-            this.bufferedReader = bufferedReader;
+        public Graph(final byte[] input) throws IOException {
+
+            final BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input)));
+
+            final String strLine = br.readLine();
+            final String parts[] = strLine.split(", ", 2);
+            final String verticesParts[] = parts[0].split(" ", 2);
+            final String edgesParts[] = parts[1].split(" ", 2);
+            final int numVertices = Integer.parseInt(verticesParts[0]);
+            final int numEdges = Integer.parseInt(edgesParts[0]);
+
+            if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
+                System.err.println("Invalid graph file format. Offending line: " + strLine);
+                System.exit(-1);
+            }
+
+            System.err.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
+
+            this.bufferedReader = br;
             this.numVertices = numVertices;
             this.numEdges = numEdges;
         }
-    }
-
-    private Graph createGraph(final byte[] input) throws IOException {
-        final BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input)));
-
-        final String strLine = br.readLine();
-        final String parts[] = strLine.split(", ", 2);
-        final String verticesParts[] = parts[0].split(" ", 2);
-        final String edgesParts[] = parts[1].split(" ", 2);
-        final int numVertices = Integer.parseInt(verticesParts[0]);
-        final int numEdges = Integer.parseInt(edgesParts[0]);
-
-        if (!verticesParts[1].contains("vertices") || !edgesParts[1].contains("edges")) {
-            System.err.println("Invalid graph file format. Offending line: " + strLine);
-            System.exit(-1);
-        }
-
-        System.err.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
-
-        return new Graph(br, numVertices, numEdges);
     }
 
     public List<Triangle> enumerateTriangles() throws IOException, InterruptedException, ExecutionException {
@@ -81,7 +78,7 @@ public class TriangleCountImpl {
         try {
             long beginTime = System.nanoTime();
 
-            graph = createGraph(input);
+            graph = new Graph(input);
 
             final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>(graph.numVertices);
             final List<LinkedHashSet<Integer>> biggerEdges = new ArrayList<LinkedHashSet<Integer>>(graph.numVertices);
@@ -152,54 +149,46 @@ public class TriangleCountImpl {
         try {
             long beginTime = System.nanoTime();
 
-            graph = createGraph(input);
+            graph = new Graph(input);
 
             final List<ArrayList<Integer>> smallerEdges = new ArrayList<ArrayList<Integer>>(graph.numVertices);
             final List<HashSet<Integer>> biggerEdges = new ArrayList<HashSet<Integer>>(graph.numVertices);
 
-            String strLine = null;
-            while ((strLine = graph.bufferedReader.readLine()) != null && !strLine.equals(""))   {
-                String parts[] = strLine.split(": ", 2);
+            for (int i = 0; i < graph.numVertices; i++) {
+                smallerEdges.add(new ArrayList<Integer>());
+                biggerEdges.add(new HashSet<Integer>());
+            }
 
-                final Integer vertex = Integer.parseInt(parts[0]);
+            {
+                final ExecutorService runnableExecutorService = Executors.newFixedThreadPool(numCores);
 
-                final ArrayList<Integer> smallEdges = new ArrayList<Integer>();
-                final ArrayList<Integer> bigEdges = new ArrayList<Integer>();
-
-                if (parts.length > 1) {
-                    StringTokenizer tokenizer = new StringTokenizer(parts[1]);
-
-                    while (tokenizer.hasMoreTokens()) {
-                        String token = tokenizer.nextToken();
-                        final Integer edge = Integer.parseInt(token);
-                        if (edge < vertex) {
-                            smallEdges.add(edge);
-                        } else {
-                            bigEdges.add(edge);
-                        }
-                    }
+                String strLine = null;
+                while ((strLine = graph.bufferedReader.readLine()) != null && !strLine.equals("")) {
+                    runnableExecutorService.submit(new ParseInputEdgesRunnable(strLine, smallerEdges, biggerEdges));
                 }
 
-                smallerEdges.add(new ArrayList<Integer>(smallEdges));
-                biggerEdges.add(new LinkedHashSet<Integer>(bigEdges));
+                runnableExecutorService.shutdown();
+                runnableExecutorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             }
 
             long parseTime = System.nanoTime();
             System.out.println("Parse time     : " + (parseTime - beginTime));
 
-            final List<Callable<List<Triangle>>> callables = new ArrayList<Callable<List<Triangle>>>();
-            for (int i = 0; i < numCores; i++) {
-                callables.add(new EnumerateTriangleCallable(i, numCores, smallerEdges, biggerEdges));
-            }
+            {
+                final List<Callable<List<Triangle>>> callables = new ArrayList<Callable<List<Triangle>>>();
+                for (int i = 0; i < numCores; i++) {
+                    callables.add(new EnumerateTriangleCallable(i, numCores, smallerEdges, biggerEdges));
+                }
 
-            final ExecutorService executorService = Executors.newFixedThreadPool(numCores);
-            final List<Future<List<Triangle>>> futures = new ArrayList<Future<List<Triangle>>>();
-            for (int i = 0; i < numCores; i++) {
-                futures.add(executorService.submit(callables.get(i)));
-            }
+                final ExecutorService callableExecutorService = Executors.newFixedThreadPool(numCores);
+                final List<Future<List<Triangle>>> futures = new ArrayList<Future<List<Triangle>>>();
+                for (int i = 0; i < numCores; i++) {
+                    futures.add(callableExecutorService.submit(callables.get(i)));
+                }
 
-            for (Future<List<Triangle>> future : futures) {
-                triangles.addAll(future.get());
+                for (Future<List<Triangle>> future : futures) {
+                    triangles.addAll(future.get());
+                }
             }
 
             long finishTime = System.nanoTime();
@@ -213,6 +202,50 @@ public class TriangleCountImpl {
         }
 
         return triangles;
+    }
+
+    private class ParseInputEdgesRunnable implements Runnable {
+
+        final String line;
+        final List<ArrayList<Integer>> smallerEdges;
+        final List<HashSet<Integer>> biggerEdges;
+
+        public ParseInputEdgesRunnable(
+                final String line,
+                final List<ArrayList<Integer>> smallerEdges,
+                final List<HashSet<Integer>> biggerEdges) {
+            this.line = line;
+            this.smallerEdges = smallerEdges;
+            this.biggerEdges = biggerEdges;
+        }
+
+
+        @Override
+        public void run() {
+            String parts[] = line.split(": ", 2);
+
+            final Integer vertex = Integer.parseInt(parts[0]);
+
+            final ArrayList<Integer> smallEdges = new ArrayList<Integer>();
+            final ArrayList<Integer> bigEdges = new ArrayList<Integer>();
+
+            if (parts.length > 1) {
+                StringTokenizer tokenizer = new StringTokenizer(parts[1]);
+
+                while (tokenizer.hasMoreTokens()) {
+                    String token = tokenizer.nextToken();
+                    final Integer edge = Integer.parseInt(token);
+                    if (edge < vertex) {
+                        smallEdges.add(edge);
+                    } else {
+                        bigEdges.add(edge);
+                    }
+                }
+            }
+
+            smallerEdges.set(vertex, new ArrayList<Integer>(smallEdges));
+            biggerEdges.set(vertex, new LinkedHashSet<Integer>(bigEdges));
+        }
     }
 
     private class EnumerateTriangleCallable implements Callable<List<Triangle>> {
@@ -250,5 +283,4 @@ public class TriangleCountImpl {
             return triangles;
         }
     }
-
 }

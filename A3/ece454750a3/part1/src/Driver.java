@@ -54,6 +54,7 @@ public class Driver {
                 mKey.set(tokenizer.nextToken());
             }
             int gene = 1;
+
             while (tokenizer.hasMoreTokens()) {
                 mValue.set(gene + "," + tokenizer.nextElement().toString());
                 context.write(mKey, mValue);

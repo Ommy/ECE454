@@ -1,4 +1,4 @@
-<project name="a3" default="a3-sample" basedir=".">
+<project name="a3" default="part4" basedir=".">
 
   <description>ECE 454 / 750 Assignment 3</description>
 
@@ -33,13 +33,13 @@
     <jar jarfile="a3.jar" basedir="${build}"/>
   </target>
 
-  <target name="part1" description="Build Part 1 of Assignment 3" depends="compile">
-    <jar jarfile="Part1.jar" basedir="${build}"/>
+  <target name="part4" description="Build Part 4 of Assignment 3" depends="compile">
+    <jar jarfile="Part4.jar" basedir="${build}"/>
   </target>
 
   <target name="clean">
     <delete dir="${build}" />
-    <delete file="a3.jar" />
+    <delete file="Part4.jar" />
     <delete file="ece454750a3.tar.gz" />
   </target>
 </project>

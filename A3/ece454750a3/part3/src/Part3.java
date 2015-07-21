@@ -1,5 +1,5 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -118,6 +118,9 @@ public class Part3 {
 
         TextInputFormat.addInputPath(job2, new Path(TEMP_OUTPUT_PATH));
         TextOutputFormat.setOutputPath(job2, new Path(args[1]));
-        System.exit(job2.waitForCompletion(true) ? 0 : 1);
+        job2.waitForCompletion(true);
+
+        FileSystem fs = FileSystem.get(conf);
+        fs.delete(new Path(TEMP_OUTPUT_PATH), true);
     }
 }

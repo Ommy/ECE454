@@ -11,39 +11,15 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
 
 public class Part2 {
 
     enum GeneEnum { SampleCounter }
 
-    public static class GeneMapper extends Mapper<Object, Text, IntWritable, DoubleWritable> {
-
-        private final static DoubleWritable mValue = new DoubleWritable();
-        private IntWritable mKey = new IntWritable();
-
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            StringTokenizer input = new StringTokenizer(value.toString(), ",");
-            //Skip first token
-            input.nextToken();
-
-            int index = 1;
-            while (input.hasMoreTokens()) {
-                Double expression = Double.parseDouble(input.nextToken());
-                mValue.set(expression);
-                mKey.set(index);
-                context.write(mKey, mValue);
-                index++;
-            }
-
-            context.getCounter(GeneEnum.SampleCounter).increment(1L);
-        }
-
-    }
-
     public static class GeneReducer extends Reducer<IntWritable, DoubleWritable, Text, DoubleWritable> {
 
         private long mapperCounter;
+        private final DoubleWritable mValue = new DoubleWritable();
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
@@ -61,13 +37,33 @@ public class Part2 {
             double count = 0.0;
 
             for (DoubleWritable value: values) {
-                if (Double.compare(value.get(), 0.5) >= 0) {
+                if (Double.compare(value.get(), 0.5) > 0) {
                     count++;
                 }
             }
 
-            double Sx = count / (double)mapperCounter;
-            context.write(toGeneString(key.get()), new DoubleWritable(Sx));
+            mValue.set(count / (double)mapperCounter);
+            context.write(toGeneString(key.get()), mValue);
+        }
+
+    }
+
+    public static class GeneMapper extends Mapper<Object, Text, IntWritable, DoubleWritable> {
+
+        private final static DoubleWritable mValue = new DoubleWritable();
+        private final IntWritable mKey = new IntWritable();
+
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            String[] input = value.toString().split(",");
+
+            for (int i = 1; i < input.length; i++) {
+                Double expression = Double.parseDouble(input[i]);
+                mValue.set(expression);
+                mKey.set(i);
+                context.write(mKey, mValue);
+            }
+
+            context.getCounter(GeneEnum.SampleCounter).increment(1L);
         }
 
     }

@@ -9,28 +9,49 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 
 public class Part3 {
 
     enum GeneEnum { SampleCounter }
     private static final String TEMP_OUTPUT_PATH = "temp_path";
 
-    public static class GeneDotProductReducer extends Reducer<Text, Text, Text, DoubleWritable> {
+    public static class GeneDotProductReducer extends Reducer<Text, Text, Text, Text> {
 
-        private final DoubleWritable mValue = new DoubleWritable();
+        private final Text mValue = new Text();
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             String[] left = values.iterator().next().toString().split(",");
             String[] right = values.iterator().next().toString().split(",");
 
-            Double sum = 0.0;
+            DecimalFormat fmt = new DecimalFormat();
+            fmt.setParseBigDecimal(true);
+
+            BigDecimal sum = BigDecimal.ZERO;
             for (Integer i = 0; i < left.length; i++) {
-                sum += (Double.parseDouble(left[i]) * Double.parseDouble(right[i]));
+                left[i] = left[i].trim();
+                right[i] = right[i].trim();
+                if (left[i].equals("0.0") || right[i].equals("0.0")) {
+                    continue;
+                }
+
+
+                try {
+                    BigDecimal a = new BigDecimal(left[i]);
+                    BigDecimal b = new BigDecimal(right[i]);
+                    sum = sum.add(a.multiply(b));
+                } catch (NumberFormatException e) {
+                    System.out.println("wtf: " + left[i] + ", " + right[i]);
+                    e.printStackTrace();
+                }
             }
 
-            if (Double.compare(sum, 0.0) > 0) {
-                mValue.set(sum);
+            if (sum.compareTo(BigDecimal.ZERO) != 0) {
+                mValue.set(sum.toPlainString());
                 context.write(key, mValue);
             }
         }
@@ -111,7 +132,7 @@ public class Part3 {
         job2.setMapOutputValueClass(Text.class);
 
         job2.setOutputKeyClass(Text.class);
-        job2.setOutputValueClass(DoubleWritable.class);
+        job2.setOutputValueClass(Text.class);
 
         job2.setInputFormatClass(TextInputFormat.class);
         job2.setOutputFormatClass(TextOutputFormat.class);

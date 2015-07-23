@@ -2,6 +2,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.Job;
@@ -11,61 +12,55 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public class Part2 {
 
-    enum GeneEnum { SampleCounter }
+    enum GeneEnum {SampleNumberCounter}
 
-    public static class GeneReducer extends Reducer<IntWritable, DoubleWritable, Text, DoubleWritable> {
+    public static class GeneReducer extends Reducer<IntWritable, DoubleWritable, NullWritable, Text> {
 
-        private long mapperCounter;
-        private final DoubleWritable mValue = new DoubleWritable();
+        private long numberOfSamples = 0;
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
             Configuration conf = context.getConfiguration();
             Cluster cluster = new Cluster(conf);
             Job currentJob = cluster.getJob(context.getJobID());
-            mapperCounter = currentJob.getCounters().findCounter(GeneEnum.SampleCounter).getValue();
-        }
-
-        private Text toGeneString(int gene) {
-            return new Text("gene_" + gene);
+            numberOfSamples = currentJob.getCounters().findCounter(GeneEnum.SampleNumberCounter).getValue();
         }
 
         public void reduce(IntWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
-            double count = 0.0;
-
-            for (DoubleWritable value: values) {
-                if (Double.compare(value.get(), 0.5) > 0) {
-                    count++;
+            long numberOfRelatedSamples = 0;
+            for (DoubleWritable expression: values) {
+                if (Double.compare(expression.get(), 0.5) > 0) {
+                    numberOfRelatedSamples++;
                 }
             }
 
-            mValue.set(count / (double)mapperCounter);
-            context.write(toGeneString(key.get()), mValue);
+            BigDecimal score = new BigDecimal(numberOfRelatedSamples).divide(new BigDecimal(numberOfSamples), MathContext.UNLIMITED);
+            context.write(NullWritable.get(), new Text("gene_" + key.get() + "," + score.toPlainString()));
         }
-
     }
 
     public static class GeneMapper extends Mapper<Object, Text, IntWritable, DoubleWritable> {
 
-        private final static DoubleWritable mValue = new DoubleWritable();
         private final IntWritable mKey = new IntWritable();
+        private final DoubleWritable mValue = new DoubleWritable();
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String[] input = value.toString().split(",");
 
-            for (int i = 1; i < input.length; i++) {
-                Double expression = Double.parseDouble(input[i]);
+            for (int sample = 1; sample < input.length; sample++) {
+                Double expression = Double.parseDouble(input[sample]);
+                mKey.set(sample);
                 mValue.set(expression);
-                mKey.set(i);
                 context.write(mKey, mValue);
             }
 
-            context.getCounter(GeneEnum.SampleCounter).increment(1L);
+            context.getCounter(GeneEnum.SampleNumberCounter).increment(1L);
         }
-
     }
 
 
@@ -79,8 +74,8 @@ public class Part2 {
 
         job.setMapOutputKeyClass(IntWritable.class);
         job.setMapOutputValueClass(DoubleWritable.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(DoubleWritable.class);
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));

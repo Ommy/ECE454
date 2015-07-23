@@ -60,7 +60,7 @@ public class Part3 {
             numberOfSamples = Long.parseLong(context.getConfiguration().get(NUMBER_OF_SAMPLES_COUNTER));
             String[] input = value.toString().split(",", 2);
 
-            Integer currentSample = Integer.parseInt(input[0].replace("sample_", ""));
+            Integer currentSample = Integer.parseInt(input[0].replace("sample_", "").trim());
             mValue.set(input[1]);
 
             for (int sample = 1; sample <= numberOfSamples; sample++) {

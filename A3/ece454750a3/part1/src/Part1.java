@@ -19,12 +19,12 @@ public class Part1 {
 
             StringBuilder sb = new StringBuilder();
             if (tokenizer.hasMoreTokens()) {
-                sb.append(tokenizer.nextToken());
+                sb.append(tokenizer.nextToken().trim());
             }
 
             List<Double> expressionList = new ArrayList<>();
             while (tokenizer.hasMoreTokens()) {
-                expressionList.add(Double.parseDouble(tokenizer.nextToken()));
+                expressionList.add(Double.parseDouble(tokenizer.nextToken().trim()));
             }
 
             double max = Collections.max(expressionList);
@@ -53,6 +53,7 @@ public class Part1 {
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }

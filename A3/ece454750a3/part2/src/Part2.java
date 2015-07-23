@@ -53,7 +53,7 @@ public class Part2 {
             String[] input = value.toString().split(",");
 
             for (int sample = 1; sample < input.length; sample++) {
-                Double expression = Double.parseDouble(input[sample]);
+                Double expression = Double.parseDouble(input[sample].trim());
                 mKey.set(sample);
                 mValue.set(expression);
                 context.write(mKey, mValue);

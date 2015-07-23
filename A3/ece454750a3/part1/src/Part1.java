@@ -1,42 +1,41 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
 
 public class Part1 {
 
-    public static class GeneMapper extends Mapper<Object, Text, Text, Text> {
-
-        private Text mKey = new Text();
+    public static class GeneMapper extends Mapper<Object, Text, NullWritable, Text> {
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             StringTokenizer tokenizer = new StringTokenizer(value.toString(), ",");
-            List<Double> expressionList = new ArrayList<>();
-            List<String> solution = new ArrayList<>();
 
+            StringBuilder sb = new StringBuilder();
             if (tokenizer.hasMoreTokens()) {
-                mKey.set(tokenizer.nextToken());
+                sb.append(tokenizer.nextToken());
             }
 
+            List<Double> expressionList = new ArrayList<>();
             while (tokenizer.hasMoreTokens()) {
-                expressionList.add(Double.parseDouble(tokenizer.nextToken().toString()));
+                expressionList.add(Double.parseDouble(tokenizer.nextToken()));
             }
 
             double max = Collections.max(expressionList);
             for (int i = 0; i < expressionList.size(); i++) {
                 if (Double.compare(expressionList.get(i), max) == 0) {
-                    solution.add("gene_" + (i+1));
+                    sb.append(",gene_");
+                    sb.append(i + 1);
                 }
             }
 
-            context.write(mKey, new Text(StringUtils.join(",", solution)));
+            context.write(NullWritable.get(), new Text(sb.toString()));
         }
 
     }
@@ -49,7 +48,7 @@ public class Part1 {
 
         job.setMapperClass(GeneMapper.class);
 
-        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputKeyClass(NullWritable.class);
         job.setMapOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));

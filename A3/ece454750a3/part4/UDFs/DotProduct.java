@@ -5,31 +5,27 @@ import org.apache.pig.data.Tuple;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
-public class DotProduct extends EvalFunc<BigDecimal> {
+public class DotProduct extends EvalFunc<String> {
+
     @Override
-    public BigDecimal exec(Tuple tuple) throws IOException {
-        if (tuple == null || tuple.size() == 0) {
-            return null;
-        }
+    public String exec(Tuple tuple) throws IOException {
+        Tuple list = (Tuple) tuple.iterator().next();
+        List<Object> left = ((Tuple) list.get(0)).getAll();
+        List<Object> right = ((Tuple) list.get(1)).getAll();
 
-        String[] array = tuple.get(0).toString().split("\\),\\(");
-        String[] left = array[0].replaceAll("\\(","").split(",");
-        String[] right = array[1].replaceAll("\\)","").split(",");
+        Double sum = 0.0;
 
-        System.out.println(array[1]);
+        for (int i = 0; i < left.size(); i++) {
+            Double leftNumber = Double.parseDouble(left.get(i).toString());
+            Double rightNumber = Double.parseDouble(right.get(i).toString());
 
-        BigDecimal sum = BigDecimal.ZERO;
-
-        for (int i = 0; i < left.length; i++) {
-            BigDecimal leftNumber = new BigDecimal(left[i]);
-            BigDecimal rightNumber = new BigDecimal(right[i]);
-            System.out.println("LEFT: " + leftNumber + " Right: " + rightNumber);
-            if (leftNumber.compareTo(BigDecimal.ZERO) != 0 && rightNumber.compareTo(BigDecimal.ZERO) != 0) {
-                sum = sum.add(leftNumber.multiply(rightNumber));
+            if (leftNumber.compareTo(0.0) != 0 && rightNumber.compareTo(0.0) != 0) {
+                sum += leftNumber * rightNumber;
             }
         }
 
-        return sum;
+        return sum.toString();
     }
 }

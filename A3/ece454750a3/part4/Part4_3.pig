@@ -5,6 +5,7 @@ samplesToExpressions = foreach sampleData generate $0 as key:chararray, ($1 ..) 
 
 copy = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
 
+
 crossed = CROSS samplesToExpressions, copy;
 
 crossed = filter crossed by $0 < $2;

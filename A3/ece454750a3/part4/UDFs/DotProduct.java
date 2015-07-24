@@ -11,6 +11,9 @@ public class DotProduct extends EvalFunc<String> {
 
     @Override
     public String exec(Tuple tuple) throws IOException {
+        if (tuple == null || tuple.size() == 0) {
+            return "";
+        }
         Tuple list = (Tuple) tuple.iterator().next();
         List<Object> left = ((Tuple) list.get(0)).getAll();
         List<Object> right = ((Tuple) list.get(1)).getAll();

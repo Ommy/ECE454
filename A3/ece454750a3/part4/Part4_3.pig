@@ -13,4 +13,8 @@ mappedCrossProduct = FOREACH filteredCrossProduct GENERATE CONCAT(CONCAT($0, ','
 
 sampleDotProduct = FOREACH mappedCrossProduct GENERATE key, UDFs.DotProduct(value) AS value;
 
-STORE sampleDotProduct INTO '$output';
+filteredDotProduct = FILTER sampleDotProduct BY value != '';
+
+finalOutput = FOREACH filteredDotProduct GENERATE CONCAT(CONCAT(key, ','), value);
+
+STORE finalOutput INTO '$output';

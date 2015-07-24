@@ -28,6 +28,6 @@ public class DotProduct extends EvalFunc<String> {
             }
         }
 
-        return sum.toString();
+        return sum.compareTo(0.0) == 0 ? "" : sum.toString();
     }
 }

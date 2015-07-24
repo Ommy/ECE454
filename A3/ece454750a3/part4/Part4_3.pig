@@ -3,15 +3,14 @@ REGISTER UDFs.jar;
 
 samplesToExpressions = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
 
-copy = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
+samplesToExpressionsCopy = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
 
+crossProduct = CROSS samplesToExpressions, samplesToExpressionsCopy;
 
-crossed = CROSS samplesToExpressions, copy;
+filteredCrossProduct = filter crossProduct by $0 < $2;
 
-crossed = filter crossed by $0 < $2;
+mappedCrossProduct = foreach filteredCrossProduct generate CONCAT(CONCAT($0, ','), $2) as key, TOTUPLE($1, $3) as value;
 
-crossed = foreach crossed generate CONCAT(CONCAT($0, ','), $2) as key, TOTUPLE($1, $3) as value;
+sampleDotProduct = foreach mappedCrossProduct generate key, UDFs.DotProduct(value) as value;
 
-udfRes = foreach crossed generate key, UDFs.DotProduct(value) as value;
-
-store udfRes into '$output';
+store sampleDotProduct into '$output';

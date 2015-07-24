@@ -1,16 +1,16 @@
-sampleData = load '$input' using PigStorage(',');
+sampleData = LOAD '$input' USING PigStorage(',');
 REGISTER UDFs.jar;
 
-samplesToExpressions = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
+samplesToExpressions = FOREACH sampleData GENERATE $0 AS key:CHARARRAY, ($1 ..) AS expressions:TUPLE();
 
-samplesToExpressionsCopy = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
+samplesToExpressionsCopy = FOREACH sampleData GENERATE $0 AS key:CHARARRAY, ($1 ..) AS expressions:TUPLE();
 
 crossProduct = CROSS samplesToExpressions, samplesToExpressionsCopy;
 
-filteredCrossProduct = filter crossProduct by $0 < $2;
+filteredCrossProduct = FILTER crossProduct BY $0 < $2;
 
-mappedCrossProduct = foreach filteredCrossProduct generate CONCAT(CONCAT($0, ','), $2) as key, TOTUPLE($1, $3) as value;
+mappedCrossProduct = FOREACH filteredCrossProduct GENERATE CONCAT(CONCAT($0, ','), $2) AS key, TOTUPLE($1, $3) AS value;
 
-sampleDotProduct = foreach mappedCrossProduct generate key, UDFs.DotProduct(value) as value;
+sampleDotProduct = FOREACH mappedCrossProduct GENERATE key, UDFs.DotProduct(value) AS value;
 
-store sampleDotProduct into '$output';
+STORE sampleDotProduct INTO '$output';

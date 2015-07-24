@@ -1,12 +1,12 @@
-sampleData = load '$input' using PigStorage(',');
+sampleData = LOAD '$input' USING PigStorage(',');
 REGISTER UDFs.jar;
 
-geneExpressions = foreach sampleData generate $0 as key:chararray, ($1 ..) as expressions:tuple();
+geneExpressions = FOREACH sampleData GENERATE $0 AS key:CHARARRAY, ($1 ..) AS expressions:TUPLE();
 
-maxResults = foreach geneExpressions generate key, UDFs.FindMax(expressions) as values;
+maxResults = FOREACH geneExpressions GENERATE key, UDFs.FindMax(expressions) AS values;
 
-concatenatedKeys = foreach maxResults generate CONCAT(key, ',') as key, values as values;
+concatenatedKeys = FOREACH maxResults GENERATE CONCAT(key, ',') AS key, values AS values;
 
-results = foreach concatenatedKeys generate CONCAT(key, values);
+results = FOREACH concatenatedKeys GENERATE CONCAT(key, values);
 
-store results into '$output';
+STORE results INTO '$output';

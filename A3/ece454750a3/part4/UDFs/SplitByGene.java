@@ -5,9 +5,7 @@ import org.apache.pig.data.*;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.StringTokenizer;
 
 public class SplitByGene extends EvalFunc<DataBag> {
 
@@ -17,7 +15,7 @@ public class SplitByGene extends EvalFunc<DataBag> {
             return null;
         }
 
-        List<String> expressions = Arrays.asList(tuple.get(0).toString().replace("(", "").replace(")", "").split(","));
+        List<Object> expressions = ((Tuple) tuple.get(0)).getAll();
 
         TupleFactory tf = TupleFactory.getInstance();
 
@@ -27,7 +25,7 @@ public class SplitByGene extends EvalFunc<DataBag> {
         for (Integer i = 0; i < expressions.size(); i++) {
             Tuple t = tf.newTuple();
             t.append("gene_" + (i+1));
-            t.append(expressions.get(i));
+            t.append(expressions.get(i).toString());
 
             bag.add(t);
         }

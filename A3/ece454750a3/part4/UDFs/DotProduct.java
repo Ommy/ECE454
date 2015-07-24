@@ -4,7 +4,6 @@ import org.apache.pig.EvalFunc;
 import org.apache.pig.data.Tuple;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 public class DotProduct extends EvalFunc<String> {

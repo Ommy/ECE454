@@ -4,17 +4,17 @@
 
   <property name="src" location="./UDFs" />
   <property name="build" location="./build" />
-  <property name="lib" value="../lib" />
-
-  <path id="build.classpath">
-  </path>
 
   <path id="a3.classpath">
-    <path refid="build.classpath" />
     <pathelement path="${build}" />
-    <pathelement path="a3.jar" />
-    <fileset dir="${lib}">
-      <include name="**/*.jar" />
+    <fileset dir="/usr/hdp/current/hadoop-mapreduce-client">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="/usr/hdp/current/hadoop-client">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="/usr/hdp/2.2.4.2-2/pig">
+      <include name="**/*.jar"/>
     </fileset>
   </path>
 
@@ -27,13 +27,7 @@
     <javac source="1.7" target="1.7" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="a3.classpath" />
   </target>
 
-  <target name="test" depends="a3-sample" />
-
-  <target name="a3-sample" description="Run the solution" depends="compile">
-    <jar jarfile="a3.jar" basedir="${build}"/>
-  </target>
-
-  <target name="udf" description="Build FindMax UDF of Assignment 3" depends="compile">
+  <target name="udf" description="Build UDFs for Assignment 3" depends="compile">
     <jar jarfile="UDFs.jar" basedir="${build}"/>
   </target>
 

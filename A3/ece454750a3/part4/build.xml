@@ -1,0 +1,39 @@
+<project name="a3" default="udf" basedir=".">
+
+  <description>ECE 454 / 750 Assignment 3</description>
+
+  <property name="src" location="./UDFs" />
+  <property name="build" location="./build" />
+
+  <path id="a3.classpath">
+    <pathelement path="${build}" />
+    <fileset dir="/usr/hdp/current/hadoop-mapreduce-client">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="/usr/hdp/current/hadoop-client">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="/usr/hdp/2.2.4.2-2/pig">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+  <target name="init">
+    <tstamp />
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac source="1.7" target="1.7" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}" classpathref="a3.classpath" />
+  </target>
+
+  <target name="udf" description="Build UDFs for Assignment 3" depends="compile">
+    <jar jarfile="UDFs.jar" basedir="${build}"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}" />
+    <delete file="UDFs.jar" />
+    <delete file="ece454750a3.tar.gz" />
+  </target>
+</project>

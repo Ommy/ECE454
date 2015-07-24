@@ -107,7 +107,6 @@ public class Part3 {
         conf.set(NUMBER_OF_SAMPLES_COUNTER, counter.toString());
 
         Job job2 = Job.getInstance(conf,"Job 2");
-        System.out.println("Counter in Main: " + counter);
 
         job2.setJarByClass(Part3.class);
         job2.setMapperClass(Part3.GeneDotProductMapper.class);
